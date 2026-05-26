@@ -1,5 +1,11 @@
+import { useMemo } from 'react'
 import { useAuth } from '@clerk/expo'
+import createClient, { type Middleware } from 'openapi-fetch'
+
 import { env } from '@/lib/env'
+import type { paths } from './schema.gen'
+
+export type ApiClient = ReturnType<typeof createClient<paths>>
 
 export class ApiError extends Error {
   constructor(
@@ -10,31 +16,22 @@ export class ApiError extends Error {
   }
 }
 
-function joinUrl(base: string, path: string) {
-  if (base.endsWith('/') && path.startsWith('/')) return `${base}${path.slice(1)}`
-  if (!base.endsWith('/') && !path.startsWith('/')) return `${base}/${path}`
-  return `${base}${path}`
-}
-
-export function useApi() {
+export function useApiClient(): ApiClient {
   const { getToken } = useAuth()
 
-  return async function fetcher<T>(
-    path: string,
-    init: RequestInit = {},
-  ): Promise<T> {
-    const token = await getToken()
-    const res = await fetch(joinUrl(env.EXPO_PUBLIC_API_BASE_URL, path), {
-      ...init,
-      headers: {
-        'Content-Type': 'application/json',
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        ...init.headers,
+  return useMemo(() => {
+    const authMiddleware: Middleware = {
+      async onRequest({ request }) {
+        const token = await getToken()
+        if (token) request.headers.set('Authorization', `Bearer ${token}`)
+        return request
       },
+    }
+
+    const client = createClient<paths>({
+      baseUrl: env.EXPO_PUBLIC_API_BASE_URL,
     })
-    const text = await res.text()
-    const body = text ? JSON.parse(text) : null
-    if (!res.ok) throw new ApiError(res.status, body)
-    return body as T
-  }
+    client.use(authMiddleware)
+    return client
+  }, [getToken])
 }

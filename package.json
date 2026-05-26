@@ -22,6 +22,7 @@
     "expo-status-bar": "~56.0.4",
     "i18next": "^26.3.0",
     "nativewind": "^4.2.4",
+    "openapi-fetch": "^0.17.0",
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "react-hook-form": "^7.76.1",
@@ -38,13 +39,17 @@
   },
   "devDependencies": {
     "@types/react": "~19.2.2",
+    "openapi-typescript": "^7.13.0",
     "typescript": "~6.0.3"
   },
   "scripts": {
     "start": "expo start",
     "android": "expo start --android",
     "ios": "expo start --ios",
-    "web": "expo start --web"
+    "web": "expo start --web",
+    "types:api": "openapi-typescript ${API_DOCS_URL:-https://api.frg.lat/docs-json} -o src/lib/api/schema.gen.ts",
+    "types:api:local": "openapi-typescript http://localhost:3000/docs-json -o src/lib/api/schema.gen.ts",
+    "typecheck": "tsc --noEmit"
   },
   "private": true
 }

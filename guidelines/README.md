@@ -16,3 +16,4 @@ Convenciones del folder:
 | 03 | Componentes (atomic design, convenciones, cuándo crear vs reusar) | [03-components.md](./03-components.md) |
 | 04 | Copy (sentence case, sin emojis, español neutral, infinitivo) | [04-copy.md](./04-copy.md) |
 | 05 | Accesibilidad mínima (área tocable, labels, contraste) | [05-accessibility.md](./05-accessibility.md) |
+| 06 | API codegen (cómo regeneramos `schema.gen.ts`, quirks vigentes) | [06-api-codegen.md](./06-api-codegen.md) |

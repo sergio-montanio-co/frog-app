@@ -4,10 +4,24 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { Link, useRouter } from 'expo-router'
 import { useSignIn } from '@clerk/expo/legacy'
 import { useTranslation } from 'react-i18next'
+import { useForm, Controller } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { z } from 'zod'
 
 import { Text, Button, Input } from '@/components/atoms'
+import { firstClerkErrorCode } from '@/lib/clerk/errors'
 
 type Stage = 'email' | 'code'
+
+const emailSchema = z.object({
+  email: z.string().trim().email(),
+})
+type EmailForm = z.infer<typeof emailSchema>
+
+const codeSchema = z.object({
+  code: z.string().trim().min(6, '6').max(6, '6'),
+})
+type CodeForm = z.infer<typeof codeSchema>
 
 export default function SignInScreen() {
   const { t } = useTranslation()
@@ -16,16 +30,25 @@ export default function SignInScreen() {
 
   const [stage, setStage] = useState<Stage>('email')
   const [email, setEmail] = useState('')
-  const [code, setCode] = useState('')
-  const [error, setError] = useState<string | null>(null)
-  const [loading, setLoading] = useState(false)
+  const [submitError, setSubmitError] = useState<string | null>(null)
 
-  async function onStart() {
+  const emailForm = useForm<EmailForm>({
+    resolver: zodResolver(emailSchema),
+    defaultValues: { email: '' },
+    mode: 'onSubmit',
+  })
+
+  const codeForm = useForm<CodeForm>({
+    resolver: zodResolver(codeSchema),
+    defaultValues: { code: '' },
+    mode: 'onSubmit',
+  })
+
+  async function onStart(values: EmailForm) {
     if (!isLoaded) return
-    setLoading(true)
-    setError(null)
+    setSubmitError(null)
     try {
-      const attempt = await signIn.create({ identifier: email })
+      const attempt = await signIn.create({ identifier: values.email })
       const emailFactor = attempt.supportedFirstFactors?.find(
         (f) => f.strategy === 'email_code',
       )
@@ -36,33 +59,43 @@ export default function SignInScreen() {
         strategy: 'email_code',
         emailAddressId: emailFactor.emailAddressId,
       })
+      setEmail(values.email)
       setStage('code')
-    } catch {
-      setError(t('auth.errors.genericStart'))
-    } finally {
-      setLoading(false)
+    } catch (err) {
+      const code = firstClerkErrorCode(err)
+      if (code === 'form_identifier_not_found') {
+        setSubmitError(t('auth.errors.identifierNotFound'))
+      } else if (code === 'too_many_requests') {
+        setSubmitError(t('auth.errors.rateLimited'))
+      } else {
+        setSubmitError(t('auth.errors.genericStart'))
+      }
     }
   }
 
-  async function onVerify() {
+  async function onVerify(values: CodeForm) {
     if (!isLoaded) return
-    setLoading(true)
-    setError(null)
+    setSubmitError(null)
     try {
       const result = await signIn.attemptFirstFactor({
         strategy: 'email_code',
-        code,
+        code: values.code,
       })
       if (result.status === 'complete') {
         await setActive({ session: result.createdSessionId })
         router.replace('/(app)/(tabs)')
       } else {
-        setError(t('auth.errors.genericVerify'))
+        setSubmitError(t('auth.errors.genericVerify'))
       }
-    } catch {
-      setError(t('auth.errors.invalidCode'))
-    } finally {
-      setLoading(false)
+    } catch (err) {
+      const code = firstClerkErrorCode(err)
+      if (code === 'form_code_incorrect') {
+        setSubmitError(t('auth.errors.invalidCode'))
+      } else if (code === 'too_many_requests') {
+        setSubmitError(t('auth.errors.rateLimited'))
+      } else {
+        setSubmitError(t('auth.errors.genericVerify'))
+      }
     }
   }
 
@@ -77,21 +110,31 @@ export default function SignInScreen() {
 
           {stage === 'email' ? (
             <>
-              <Input
-                label={t('auth.signIn.emailLabel')}
-                placeholder={t('auth.signIn.emailPlaceholder')}
-                value={email}
-                onChangeText={setEmail}
-                autoCapitalize="none"
-                autoComplete="email"
-                keyboardType="email-address"
-                error={error ?? undefined}
+              <Controller
+                control={emailForm.control}
+                name="email"
+                render={({ field, fieldState }) => (
+                  <Input
+                    label={t('auth.signIn.emailLabel')}
+                    placeholder={t('auth.signIn.emailPlaceholder')}
+                    value={field.value}
+                    onChangeText={field.onChange}
+                    onBlur={field.onBlur}
+                    autoCapitalize="none"
+                    autoComplete="email"
+                    keyboardType="email-address"
+                    error={
+                      fieldState.error
+                        ? t('auth.errors.invalidEmail')
+                        : (submitError ?? undefined)
+                    }
+                  />
+                )}
               />
               <Button
                 label={t('auth.signIn.submit')}
-                onPress={onStart}
-                loading={loading}
-                disabled={email.trim().length === 0}
+                onPress={emailForm.handleSubmit(onStart)}
+                loading={emailForm.formState.isSubmitting}
               />
               <View className="flex-row items-center gap-2">
                 <Text tone="secondary">{t('auth.signIn.noAccount')}</Text>
@@ -108,19 +151,30 @@ export default function SignInScreen() {
               <Text tone="secondary">
                 {t('auth.signIn.codeSubtitle', { email })}
               </Text>
-              <Input
-                label={t('auth.signIn.codeLabel')}
-                value={code}
-                onChangeText={setCode}
-                keyboardType="number-pad"
-                autoComplete="one-time-code"
-                error={error ?? undefined}
+              <Controller
+                control={codeForm.control}
+                name="code"
+                render={({ field, fieldState }) => (
+                  <Input
+                    label={t('auth.signIn.codeLabel')}
+                    value={field.value}
+                    onChangeText={field.onChange}
+                    onBlur={field.onBlur}
+                    keyboardType="number-pad"
+                    autoComplete="one-time-code"
+                    maxLength={6}
+                    error={
+                      fieldState.error || submitError
+                        ? (submitError ?? t('auth.errors.invalidCode'))
+                        : undefined
+                    }
+                  />
+                )}
               />
               <Button
                 label={t('auth.signIn.codeSubmit')}
-                onPress={onVerify}
-                loading={loading}
-                disabled={code.trim().length === 0}
+                onPress={codeForm.handleSubmit(onVerify)}
+                loading={codeForm.formState.isSubmitting}
               />
             </>
           )}

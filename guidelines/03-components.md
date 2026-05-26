@@ -27,19 +27,22 @@ src/components/
 
 Marcados como "necesarios desde sesión X" para no inflar el scope:
 
-| Atom         | Sesión |
-|--------------|--------|
-| Text         | 1      |
-| Button       | 1      |
-| Card         | 1      |
-| Icon         | 1      |
-| Input        | 1      |
-| Avatar       | 2      |
-| ProgressBar  | 2      |
-| Badge        | 4      |
-| Divider      | 4      |
-| Checkbox     | 5      |
-| MoneyInput   | 5      |
+| Atom         | Sesión | Status   |
+|--------------|--------|----------|
+| Text         | 1      | creado   |
+| Button       | 1      | creado   |
+| Card         | 1      | creado   |
+| Icon         | 1      | creado   |
+| Input        | 1      | creado   |
+| Avatar       | 2      | creado   |
+| ProgressBar  | 2      | creado   |
+| Splash       | 2      | creado   |
+| Badge        | 4      | pendiente |
+| Divider      | 4      | pendiente |
+| Checkbox     | 5      | pendiente |
+| MoneyInput   | 5      | pendiente |
+
+Molecules creadas: `TripCard` (sesión 2).
 
 ## Convenciones de implementación
 

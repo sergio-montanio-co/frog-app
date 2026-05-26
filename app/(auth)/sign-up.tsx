@@ -4,57 +4,95 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { Link, useRouter } from 'expo-router'
 import { useSignUp } from '@clerk/expo/legacy'
 import { useTranslation } from 'react-i18next'
+import { useForm, Controller } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { useQueryClient } from '@tanstack/react-query'
+import { z } from 'zod'
 
 import { Text, Button, Input } from '@/components/atoms'
+import { firstClerkErrorCode } from '@/lib/clerk/errors'
 
 type Stage = 'form' | 'code'
+
+const formSchema = z.object({
+  firstName: z.string().trim().max(64).optional().or(z.literal('')),
+  email: z.string().trim().email(),
+})
+type SignUpForm = z.infer<typeof formSchema>
+
+const codeSchema = z.object({
+  code: z.string().trim().min(6, '6').max(6, '6'),
+})
+type CodeForm = z.infer<typeof codeSchema>
 
 export default function SignUpScreen() {
   const { t } = useTranslation()
   const { signUp, setActive, isLoaded } = useSignUp()
   const router = useRouter()
+  const qc = useQueryClient()
 
   const [stage, setStage] = useState<Stage>('form')
-  const [firstName, setFirstName] = useState('')
   const [email, setEmail] = useState('')
-  const [code, setCode] = useState('')
-  const [error, setError] = useState<string | null>(null)
-  const [loading, setLoading] = useState(false)
+  const [submitError, setSubmitError] = useState<string | null>(null)
 
-  async function onStart() {
+  const form = useForm<SignUpForm>({
+    resolver: zodResolver(formSchema),
+    defaultValues: { firstName: '', email: '' },
+    mode: 'onSubmit',
+  })
+
+  const codeForm = useForm<CodeForm>({
+    resolver: zodResolver(codeSchema),
+    defaultValues: { code: '' },
+    mode: 'onSubmit',
+  })
+
+  async function onStart(values: SignUpForm) {
     if (!isLoaded) return
-    setLoading(true)
-    setError(null)
+    setSubmitError(null)
     try {
       await signUp.create({
-        emailAddress: email,
-        firstName: firstName.trim() || undefined,
+        emailAddress: values.email,
+        firstName: values.firstName?.trim() || undefined,
       })
       await signUp.prepareEmailAddressVerification({ strategy: 'email_code' })
+      setEmail(values.email)
       setStage('code')
-    } catch {
-      setError(t('auth.errors.genericStart'))
-    } finally {
-      setLoading(false)
+    } catch (err) {
+      const code = firstClerkErrorCode(err)
+      if (code === 'form_identifier_exists') {
+        setSubmitError(t('auth.errors.identifierExists'))
+      } else if (code === 'too_many_requests') {
+        setSubmitError(t('auth.errors.rateLimited'))
+      } else {
+        setSubmitError(t('auth.errors.genericStart'))
+      }
     }
   }
 
-  async function onVerify() {
+  async function onVerify(values: CodeForm) {
     if (!isLoaded) return
-    setLoading(true)
-    setError(null)
+    setSubmitError(null)
     try {
-      const result = await signUp.attemptEmailAddressVerification({ code })
+      const result = await signUp.attemptEmailAddressVerification({
+        code: values.code,
+      })
       if (result.status === 'complete') {
         await setActive({ session: result.createdSessionId })
+        await qc.invalidateQueries({ queryKey: ['me'] })
         router.replace('/(app)/(tabs)')
       } else {
-        setError(t('auth.errors.genericVerify'))
+        setSubmitError(t('auth.errors.genericVerify'))
       }
-    } catch {
-      setError(t('auth.errors.invalidCode'))
-    } finally {
-      setLoading(false)
+    } catch (err) {
+      const code = firstClerkErrorCode(err)
+      if (code === 'form_code_incorrect') {
+        setSubmitError(t('auth.errors.invalidCode'))
+      } else if (code === 'too_many_requests') {
+        setSubmitError(t('auth.errors.rateLimited'))
+      } else {
+        setSubmitError(t('auth.errors.genericVerify'))
+      }
     }
   }
 
@@ -69,29 +107,46 @@ export default function SignUpScreen() {
 
           {stage === 'form' ? (
             <>
-              <Input
-                label={t('auth.signUp.firstNameLabel')}
-                placeholder={t('auth.signUp.firstNamePlaceholder')}
-                value={firstName}
-                onChangeText={setFirstName}
-                autoCapitalize="words"
-                autoComplete="name-given"
+              <Controller
+                control={form.control}
+                name="firstName"
+                render={({ field }) => (
+                  <Input
+                    label={t('auth.signUp.firstNameLabel')}
+                    placeholder={t('auth.signUp.firstNamePlaceholder')}
+                    value={field.value ?? ''}
+                    onChangeText={field.onChange}
+                    onBlur={field.onBlur}
+                    autoCapitalize="words"
+                    autoComplete="name-given"
+                  />
+                )}
               />
-              <Input
-                label={t('auth.signUp.emailLabel')}
-                placeholder={t('auth.signUp.emailPlaceholder')}
-                value={email}
-                onChangeText={setEmail}
-                autoCapitalize="none"
-                autoComplete="email"
-                keyboardType="email-address"
-                error={error ?? undefined}
+              <Controller
+                control={form.control}
+                name="email"
+                render={({ field, fieldState }) => (
+                  <Input
+                    label={t('auth.signUp.emailLabel')}
+                    placeholder={t('auth.signUp.emailPlaceholder')}
+                    value={field.value}
+                    onChangeText={field.onChange}
+                    onBlur={field.onBlur}
+                    autoCapitalize="none"
+                    autoComplete="email"
+                    keyboardType="email-address"
+                    error={
+                      fieldState.error
+                        ? t('auth.errors.invalidEmail')
+                        : (submitError ?? undefined)
+                    }
+                  />
+                )}
               />
               <Button
                 label={t('auth.signUp.submit')}
-                onPress={onStart}
-                loading={loading}
-                disabled={email.trim().length === 0}
+                onPress={form.handleSubmit(onStart)}
+                loading={form.formState.isSubmitting}
               />
               <View className="flex-row items-center gap-2">
                 <Text tone="secondary">{t('auth.signUp.hasAccount')}</Text>
@@ -108,19 +163,30 @@ export default function SignUpScreen() {
               <Text tone="secondary">
                 {t('auth.signUp.codeSubtitle', { email })}
               </Text>
-              <Input
-                label={t('auth.signUp.codeLabel')}
-                value={code}
-                onChangeText={setCode}
-                keyboardType="number-pad"
-                autoComplete="one-time-code"
-                error={error ?? undefined}
+              <Controller
+                control={codeForm.control}
+                name="code"
+                render={({ field, fieldState }) => (
+                  <Input
+                    label={t('auth.signUp.codeLabel')}
+                    value={field.value}
+                    onChangeText={field.onChange}
+                    onBlur={field.onBlur}
+                    keyboardType="number-pad"
+                    autoComplete="one-time-code"
+                    maxLength={6}
+                    error={
+                      fieldState.error || submitError
+                        ? (submitError ?? t('auth.errors.invalidCode'))
+                        : undefined
+                    }
+                  />
+                )}
               />
               <Button
                 label={t('auth.signUp.codeSubmit')}
-                onPress={onVerify}
-                loading={loading}
-                disabled={code.trim().length === 0}
+                onPress={codeForm.handleSubmit(onVerify)}
+                loading={codeForm.formState.isSubmitting}
               />
             </>
           )}
