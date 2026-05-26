@@ -10,7 +10,9 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.montanio.frg",
-      "associatedDomains": ["applinks:app.frg.lat"]
+      "associatedDomains": [
+        "applinks:app.frg.lat"
+      ]
     },
     "android": {
       "package": "com.montanio.frg",
@@ -32,7 +34,10 @@
               "pathPrefix": "/join"
             }
           ],
-          "category": ["BROWSABLE", "DEFAULT"]
+          "category": [
+            "BROWSABLE",
+            "DEFAULT"
+          ]
         }
       ]
     },
@@ -46,7 +51,8 @@
       "expo-splash-screen",
       "expo-secure-store",
       "expo-localization",
-      "expo-notifications"
+      "expo-notifications",
+      "@react-native-community/datetimepicker"
     ]
   }
 }

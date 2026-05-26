@@ -7,6 +7,9 @@ export type UserDto = components['schemas']['UserDto']
 export type UpdateMeDto = components['schemas']['UpdateMeDto']
 export type TripListItem = components['schemas']['TripListItemDto']
 export type TripStatus = TripListItem['status']
+export type CreateTripBody = components['schemas']['CreateTripDto']
+export type CreatedTripResponse = components['schemas']['TripDto']
+export type TripMember = components['schemas']['TripMemberDto']
 
 const ACTIVE_STATUSES: TripStatus[] = [
   'draft',
@@ -60,14 +63,36 @@ export function useTrips(tab: TripsTab) {
         .GET('/trips', {
           params: {
             query: {
-              // Backend acepta comma-separated string; openapi-typescript lo
-              // emite como Object[] por un quirk del Swagger. Ver
-              // guidelines/06-api-codegen.md.
-              status: statuses.join(',') as never,
+              status: statuses.join(','),
               limit: 50,
             },
           },
         })
         .then(unwrap),
+  })
+}
+
+export function useTrip(id: string | undefined) {
+  const client = useApiClient()
+  return useQuery({
+    enabled: Boolean(id),
+    queryKey: ['trip', id] as const,
+    queryFn: () =>
+      client
+        .GET('/trips/{id}', { params: { path: { id: id as string } } })
+        .then(unwrap),
+  })
+}
+
+export function useCreateTrip() {
+  const client = useApiClient()
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (body: CreateTripBody) =>
+      client.POST('/trips', { body }).then(unwrap),
+    onSuccess: (trip) => {
+      qc.setQueryData(['trip', trip.id], trip)
+      qc.invalidateQueries({ queryKey: ['trips'] })
+    },
   })
 }

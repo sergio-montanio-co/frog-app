@@ -37,12 +37,15 @@ Marcados como "necesarios desde sesión X" para no inflar el scope:
 | Avatar       | 2      | creado   |
 | ProgressBar  | 2      | creado   |
 | Splash       | 2      | creado   |
+| Stepper      | 3      | creado   |
+| IconButton   | 3      | creado   |
+| DateField    | 3      | creado   |
+| MoneyInput   | 3      | creado   |
 | Badge        | 4      | pendiente |
 | Divider      | 4      | pendiente |
 | Checkbox     | 5      | pendiente |
-| MoneyInput   | 5      | pendiente |
 
-Molecules creadas: `TripCard` (sesión 2).
+Molecules creadas: `TripCard` (sesión 2), `WizardStep` · `MemberInputRow` · `CostBreakdownRow` (sesión 3).
 
 ## Convenciones de implementación
 

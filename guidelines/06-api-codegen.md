@@ -1,57 +1,55 @@
-# API codegen — notas y quirks
+# API codegen — reglas y operación
 
-Notas operativas que aparecen al correr `npm run types:api` contra el
-backend deployed. No son blockers pero conviene tenerlas escritas para
-sesiones futuras.
+Cómo regeneramos los tipos del backend en el frontend. Aplica a todas
+las sesiones; si una sesión propone otra forma de consumir el API,
+primero actualizamos este documento.
 
 ## Cómo regeneramos
 
 ```bash
-# Default: backend Railway
+# Default: backend Railway (https://api.frg.lat)
 npm run types:api
 
 # Local (frog-api corriendo en :3000)
 npm run types:api:local
+
+# Override puntual:
+API_DOCS_URL=https://otro.host/docs-json npm run types:api
 ```
 
 El archivo generado `src/lib/api/schema.gen.ts` **se commitea**. Si TS
 empieza a quejarse sin que tú lo hayas tocado, es porque el backend
-cambió — regenera y resuelve los errores.
-
-## Cert mismatch en `api.frg.lat` (sesión 2)
-
-Railway está sirviendo el cert default (`*.up.railway.app`) en lugar de
-uno emitido para el custom domain `frg.lat`. Esto rompe:
-
-- `npm run types:api` con `ERR_TLS_CERT_ALTNAME_INVALID`.
-- Cualquier `fetch()` desde un cliente que valide certs estrictamente
-  (iOS/Android nativo lo hará).
-
-Workaround temporal usado en sesión 2: bajar el JSON con
-`curl -sk https://api.frg.lat/docs-json -o /tmp/frog-openapi.json` y
-correr `npx openapi-typescript /tmp/frog-openapi.json`.
-
-**TODO antes de testear en device:** configurar el SSL del custom
-domain en Railway o cambiar `EXPO_PUBLIC_API_BASE_URL` al hostname
-`*.up.railway.app` que sí tiene cert válido.
-
-## Quirks del schema
-
-### `GET /trips` — `query.status` tipado como `Object[]`
-
-El backend declara el query param `status` como `type: object` en lugar
-de string en su Swagger, así que openapi-typescript lo emite como
-`components["schemas"]["Object"][]` (donde `Object = Record<string, never>`).
-
-En la práctica el backend lo parsea como string comma-separated
-(`"draft,collecting,..."`). En `lib/api/queries.ts` mandamos un string
-y hacemos `as never` para satisfacer al type-checker; cuando el backend
-arregle el decorador del DTO (probablemente `@ApiQuery({ type: String })`),
-regeneramos y quitamos el cast.
+cambió — regenera y resuelve los errores en el código consumidor.
 
 ## Reglas
 
 - **Nunca editar `schema.gen.ts` a mano.** Si TS protesta, regenera o
-  arregla el código.
-- Cuando el backend agregue nuevos endpoints o cambie shapes, alguien
-  corre `npm run types:api` antes del PR del frontend.
+  arregla el código que llama al cliente.
+- **Cuando el backend agregue/cambie endpoints o DTOs**, alguien corre
+  `npm run types:api` y commitéa el diff antes (o en) el PR del frontend.
+- **El cliente HTTP se construye desde `paths`** (`useApiClient()` en
+  `src/lib/api/client.ts`). No usar `fetch` directo contra el backend.
+- **Sin `any`, sin `as never`, sin `// @ts-ignore`** para "callar" el
+  type-checker. Si el schema generado no expresa bien algo, el fix vive
+  del lado backend (mejor decorador en el DTO) — propón el cambio y
+  regenera.
+
+## Quirks vigentes
+
+_Ningún quirk activo._
+
+(Cuando aparezca uno nuevo: documéntalo aquí con el shape exacto que
+emite el codegen, el workaround usado y cómo se elimina del lado
+backend cuando sea posible.)
+
+## Quirks resueltos (registro)
+
+- **`GET /trips` `query.status` tipado como `Object[]` (sesión 2).** El
+  backend emitía `type: object` en Swagger; el frontend mandaba string
+  comma-separated con `as never`. Resuelto cuando el backend cambió el
+  decorador del DTO a string.
+- **Cert TLS roto en `api.frg.lat` (sesión 2).** Railway servía el cert
+  default `*.up.railway.app` en lugar de uno para el custom domain, lo
+  que rompía `npm run types:api` con `ERR_TLS_CERT_ALTNAME_INVALID` y
+  cualquier `fetch()` nativo desde iOS/Android. Resuelto al configurar
+  el SSL del custom domain en Railway.

@@ -878,7 +878,6 @@ export interface components {
             /** @description Progreso agregado a partir del ledger de contributions. Presente en GET /trips/:id; omitido en la creación inicial. */
             progress?: components["schemas"]["TripDerivedProgressDto"];
         };
-        Object: Record<string, never>;
         TripProgressDto: {
             /** @example 50000.00 */
             totalTargetMxn: string;
@@ -1489,7 +1488,7 @@ export interface operations {
         parameters: {
             query?: {
                 /** @description Lista comma-separated de status a filtrar */
-                status?: components["schemas"]["Object"][];
+                status?: string;
                 limit?: number;
                 /** @description Cursor opaco devuelto por la página previa */
                 cursor?: string;
