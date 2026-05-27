@@ -24,7 +24,7 @@ import {
   Step3,
   Step4,
   Step5,
-} from './_steps'
+} from '@/components/organisms/newTripWizard'
 import {
   buildPayloadFromDraft,
   displayedStep,
@@ -35,7 +35,7 @@ import {
   totalDots,
   type DraftTrip,
   type Step,
-} from './_wizard'
+} from '@/lib/trips/wizard'
 
 function hasUserData(draft: DraftTrip): boolean {
   return Boolean(

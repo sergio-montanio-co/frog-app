@@ -21,6 +21,8 @@ export const en: TranslationSchema = {
     filter: 'Filter',
     clear: 'Clear',
     all: 'All',
+    understood: 'Got it',
+    saveChanges: 'Save changes',
   },
   auth: {
     signIn: {
@@ -473,6 +475,82 @@ export const en: TranslationSchema = {
         share: 'Share',
         goToTrip: 'Go to trip',
         noInvitations: 'This trip has no pending invitations.',
+      },
+    },
+    edit: {
+      headerTitle: 'Edit trip',
+      title: 'Edit trip',
+      submit: 'Save changes',
+      noChanges: "You didn't change anything.",
+      genericError: "Couldn't save your changes. Try again.",
+      section: {
+        basics: 'The trip',
+        destination: 'Destination',
+        dates: 'Actual trip dates',
+        account: "Organizer's account",
+      },
+    },
+    admin: {
+      editTrip: {
+        cta: 'Edit trip',
+      },
+      release: {
+        cta: 'Release funds',
+        dialog: {
+          title: 'Release funds · {{tripName}}',
+          body: "This closes the savings cycle. Members won't be able to report payments and this action can't be undone.",
+          notesLabel: 'Notes for the group (optional)',
+          notesPlaceholder: "Let the group know — e.g. flights are booked.",
+          notesCounter: '{{count}} / 1000',
+          confirm: 'Release funds',
+        },
+        pendingWarning: {
+          one: '{{count}} payment is pending review. Approve or reject it before releasing.',
+          other: '{{count}} payments are pending review. Approve or reject them before releasing.',
+        },
+        reviewPending: 'Review pending',
+        releaseAnyway: 'Release anyway',
+        confirmAnyway: {
+          title: 'Release with pending payments',
+          body: "If you release now, the pending payments won't be confirmable. This action can't be undone.",
+          confirm: 'Yes, release',
+        },
+        warningsTitle: 'Plan released with notices',
+        warningsSubtitle:
+          "The plan is released. Take note of these warnings and follow up with the group.",
+      },
+      leave: {
+        cta: 'Leave trip',
+        title: 'Leave {{tripName}}?',
+        body: "You're going to leave the trip. If you've reported payments, talk to the organizer. This action can't be undone.",
+        confirm: 'Yes, leave',
+        genericError: "Couldn't remove you from the trip. Try again.",
+      },
+      removeMember: {
+        cta: 'Member actions',
+        title: 'Remove {{name}}',
+        body: "Their confirmed payments stay, but they no longer count toward the group's savings.",
+        confirm: 'Yes, remove',
+        genericError: "Couldn't remove the member. Try again.",
+      },
+      inviteLate: {
+        cta: 'Invite someone else',
+        title: 'Invite someone else',
+        submit: 'Send invitation',
+        namePlaceholder: 'Name',
+        contactPlaceholder: 'Email or phone',
+        helper: 'We will send them a join link. It expires in 7 days.',
+        error: {
+          nameRequired: 'Type the name.',
+          contactInvalid: 'Needs a valid email or phone.',
+          duplicate: 'A member with that email or phone already exists.',
+          isSolo: "This trip is marked as solo. You can't invite anyone.",
+          generic: "Couldn't send the invitation. Try again.",
+        },
+      },
+      purchaseReady: {
+        title: 'Trip purchased',
+        body: 'The organizer released the funds. There are no more payments to report for this plan.',
       },
     },
   },

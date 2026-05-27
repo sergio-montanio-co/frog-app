@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Pressable, ScrollView, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useLocalSearchParams, useRouter } from 'expo-router'
@@ -8,6 +8,7 @@ import {
   Badge,
   Button,
   Card,
+  ConfirmDialog,
   Divider,
   Icon,
   IconButton,
@@ -18,29 +19,34 @@ import {
 import {
   Countdown,
   InvitedMemberRow,
+  InviteLateDialog,
   MemberStatusRow,
   PlanSummaryCard,
+  ReleaseDialog,
   UpcomingInstallmentBanner,
 } from '@/components/molecules'
 import { colors } from '@/theme/colors'
+import { parseBackendError } from '@/lib/api/errors'
 import { formatMxn } from '@/lib/money'
 import {
+  useLeaveTrip,
   useMarkAllNotificationsRead,
   useMe,
   useMyContributions,
   usePendingContributions,
+  useRemoveMember,
   useTrip,
   useTripSchedules,
   useUpcomingInstallment,
   type PaymentSchedule,
   type TripDto,
   type TripMember,
-  type TripSavingsPlan,
 } from '@/lib/api/queries'
 import {
   findActivePurchasePlan,
   getMemberCurrentState,
   isOrganizer,
+  resolveMemberName,
 } from '@/lib/trips/helpers'
 
 export default function TripDashboard() {
@@ -50,6 +56,8 @@ export default function TripDashboard() {
   const me = useMe()
   const trip = useTrip(id)
   const markAllRead = useMarkAllNotificationsRead()
+  const leave = useLeaveTrip()
+  const remove = useRemoveMember(id ?? '')
 
   const tripId = trip.data?.id
   const markAllReadMutate = markAllRead.mutate
@@ -59,6 +67,16 @@ export default function TripDashboard() {
   }, [tripId, markAllReadMutate])
 
   const activePlan = trip.data ? findActivePurchasePlan(trip.data) : null
+  const releasablePlan = useMemo(() => {
+    if (!trip.data) return null
+    return (
+      trip.data.savingsPlans.find(
+        (p) =>
+          p.type === 'trip_purchase' &&
+          (p.status === 'active' || p.status === 'paused'),
+      ) ?? null
+    )
+  }, [trip.data])
   const schedules = useTripSchedules(id, activePlan?.id)
   const upcoming = useUpcomingInstallment(id)
   const myContribs = useMyContributions(id)
@@ -69,6 +87,14 @@ export default function TripDashboard() {
     enabled: Boolean(id) && meIsOrganizerEarly,
   })
   const pendingCount = pending.data?.items.length ?? 0
+  const purchaseReady = trip.data?.status === 'purchase_ready'
+
+  const [releaseOpen, setReleaseOpen] = useState(false)
+  const [leaveOpen, setLeaveOpen] = useState(false)
+  const [inviteOpen, setInviteOpen] = useState(false)
+  const [removeTarget, setRemoveTarget] = useState<TripMember | null>(null)
+  const [leaveError, setLeaveError] = useState<string | null>(null)
+  const [removeError, setRemoveError] = useState<string | null>(null)
 
   if (trip.isLoading || me.isLoading) return <Splash />
 
@@ -96,11 +122,48 @@ export default function TripDashboard() {
     (m) => m.user?.id === me.data?.id && m.status === 'active',
   )
 
+  async function onConfirmLeave() {
+    setLeaveError(null)
+    try {
+      await leave.mutateAsync(trip.data!.id)
+      setLeaveOpen(false)
+      router.replace('/(app)/(tabs)/')
+    } catch (err) {
+      setLeaveError(parseBackendError(err))
+    }
+  }
+
+  async function onConfirmRemove() {
+    if (!removeTarget) return
+    setRemoveError(null)
+    try {
+      await remove.mutateAsync(removeTarget.id)
+      setRemoveTarget(null)
+    } catch (err) {
+      setRemoveError(parseBackendError(err))
+    }
+  }
+
   return (
     <SafeAreaView className="flex-1 bg-background" edges={['top']}>
       <DashboardTopBar
         title={trip.data.name}
         onBack={() => router.back()}
+        rightSlot={
+          userIsOrganizer ? (
+            <IconButton
+              name="edit"
+              variant="ghost"
+              accessibilityLabel={t('trips.admin.editTrip.cta')}
+              onPress={() =>
+                router.push({
+                  pathname: '/trips/[id]/edit',
+                  params: { id: trip.data.id },
+                })
+              }
+            />
+          ) : null
+        }
       />
       <ScrollView
         className="flex-1"
@@ -111,6 +174,8 @@ export default function TripDashboard() {
         }}
       >
         <DashboardHero trip={trip.data} />
+
+        {purchaseReady ? <PurchaseReadyBanner /> : null}
 
         {!activePlan && userIsOrganizer ? (
           <PlanEmptyStateOrganizer
@@ -126,7 +191,7 @@ export default function TripDashboard() {
 
         {activePlan ? (
           <>
-            {upcoming.data ? (
+            {!purchaseReady && upcoming.data ? (
               <UpcomingInstallmentBanner
                 upcoming={upcoming.data}
                 onReport={() =>
@@ -137,6 +202,15 @@ export default function TripDashboard() {
 
             <GroupProgressCard trip={trip.data} />
             <PlanSummaryCard plan={activePlan} />
+
+            {userIsOrganizer && releasablePlan ? (
+              <Button
+                label={t('trips.admin.release.cta')}
+                variant="primary"
+                onPress={() => setReleaseOpen(true)}
+              />
+            ) : null}
+
             {hasHistory ? (
               <Pressable
                 onPress={() =>
@@ -157,24 +231,116 @@ export default function TripDashboard() {
               schedules={schedules.data?.items ?? []}
               currentUserId={me.data.id}
               currentMemberId={currentMember?.id}
+              trip={trip.data}
+              canRemove={userIsOrganizer}
+              onRemove={(m) => {
+                setRemoveError(null)
+                setRemoveTarget(m)
+              }}
             />
             {userIsOrganizer ? (
               <PendingInvitesSection
                 tripId={trip.data.id}
                 tripName={trip.data.name}
                 members={trip.data.members}
+                onInvite={() => setInviteOpen(true)}
               />
             ) : null}
-            {userIsOrganizer ? (
+            {userIsOrganizer && !purchaseReady ? (
               <OrganizerActionsCard
                 tripId={trip.data.id}
                 pendingCount={pendingCount}
               />
             ) : null}
+            {!userIsOrganizer ? (
+              <LeaveTripCard onPress={() => setLeaveOpen(true)} />
+            ) : null}
           </>
         ) : null}
       </ScrollView>
+
+      {userIsOrganizer && releasablePlan ? (
+        <ReleaseDialog
+          open={releaseOpen}
+          tripId={trip.data.id}
+          tripName={trip.data.name}
+          planId={releasablePlan.id}
+          pendingCount={pendingCount}
+          onClose={() => setReleaseOpen(false)}
+          onReviewPending={() =>
+            router.push(`/trips/${trip.data.id}/organizer/pending`)
+          }
+        />
+      ) : null}
+
+      {userIsOrganizer ? (
+        <InviteLateDialog
+          open={inviteOpen}
+          tripId={trip.data.id}
+          onClose={() => setInviteOpen(false)}
+        />
+      ) : null}
+
+      <ConfirmDialog
+        open={leaveOpen}
+        destructive
+        title={t('trips.admin.leave.title', { tripName: trip.data.name })}
+        description={leaveError ?? t('trips.admin.leave.body')}
+        confirmLabel={t('trips.admin.leave.confirm')}
+        cancelLabel={t('common.cancel')}
+        confirmLoading={leave.isPending}
+        onConfirm={onConfirmLeave}
+        onCancel={() => {
+          setLeaveError(null)
+          setLeaveOpen(false)
+        }}
+      />
+
+      <ConfirmDialog
+        open={removeTarget != null}
+        destructive
+        title={t('trips.admin.removeMember.title', {
+          name: removeTarget ? resolveMemberName(removeTarget) : '',
+        })}
+        description={removeError ?? t('trips.admin.removeMember.body')}
+        confirmLabel={t('trips.admin.removeMember.confirm')}
+        cancelLabel={t('common.cancel')}
+        confirmLoading={remove.isPending}
+        onConfirm={onConfirmRemove}
+        onCancel={() => {
+          setRemoveError(null)
+          setRemoveTarget(null)
+        }}
+      />
     </SafeAreaView>
+  )
+}
+
+function PurchaseReadyBanner() {
+  const { t } = useTranslation()
+  return (
+    <Card className="gap-2">
+      <View className="flex-row items-center gap-2">
+        <Icon name="check-circle" size={20} color={colors.primary} />
+        <Text variant="title">{t('trips.admin.purchaseReady.title')}</Text>
+      </View>
+      <Text variant="body" tone="secondary">
+        {t('trips.admin.purchaseReady.body')}
+      </Text>
+    </Card>
+  )
+}
+
+function LeaveTripCard({ onPress }: { onPress: () => void }) {
+  const { t } = useTranslation()
+  return (
+    <Card className="gap-3 items-start">
+      <Button
+        label={t('trips.admin.leave.cta')}
+        variant="ghost"
+        onPress={onPress}
+      />
+    </Card>
   )
 }
 
@@ -254,9 +420,11 @@ function OrganizerActionsCard({
 function DashboardTopBar({
   title,
   onBack,
+  rightSlot,
 }: {
   title: string
   onBack: () => void
+  rightSlot?: React.ReactNode
 }) {
   const { t } = useTranslation()
   return (
@@ -272,7 +440,7 @@ function DashboardTopBar({
           {title}
         </Text>
       </View>
-      <View className="w-11" />
+      {rightSlot ?? <View className="w-11" />}
     </View>
   )
 }
@@ -391,10 +559,12 @@ function PendingInvitesSection({
   tripId,
   tripName,
   members,
+  onInvite,
 }: {
   tripId: string
   tripName: string
   members: TripMember[]
+  onInvite: () => void
 }) {
   const { t } = useTranslation()
   const pending = useMemo(
@@ -408,28 +578,35 @@ function PendingInvitesSection({
     [members],
   )
 
-  if (pending.length === 0) return null
-
   return (
     <Card className="gap-3">
       <View className="flex-row items-center gap-2">
         <Icon name="mail-outline" size={20} color={colors.primary} />
         <Text variant="title">{t('trips.invitedMembers.title')}</Text>
       </View>
-      <Text variant="caption" tone="secondary">
-        {t('trips.invitedMembers.subtitle')}
-      </Text>
-      {pending.map((m, idx) => (
-        <View key={m.id} className="gap-3">
-          {idx > 0 ? <Divider /> : null}
-          <InvitedMemberRow
-            member={m}
-            invitation={m.invitation!}
-            tripId={tripId}
-            tripName={tripName}
-          />
-        </View>
-      ))}
+      {pending.length > 0 ? (
+        <>
+          <Text variant="caption" tone="secondary">
+            {t('trips.invitedMembers.subtitle')}
+          </Text>
+          {pending.map((m, idx) => (
+            <View key={m.id} className="gap-3">
+              {idx > 0 ? <Divider /> : null}
+              <InvitedMemberRow
+                member={m}
+                invitation={m.invitation!}
+                tripId={tripId}
+                tripName={tripName}
+              />
+            </View>
+          ))}
+        </>
+      ) : null}
+      <Button
+        label={t('trips.admin.inviteLate.cta')}
+        variant="secondary"
+        onPress={onInvite}
+      />
     </Card>
   )
 }
@@ -439,11 +616,17 @@ function MembersSection({
   schedules,
   currentUserId,
   currentMemberId,
+  trip,
+  canRemove,
+  onRemove,
 }: {
   members: TripMember[]
   schedules: PaymentSchedule[]
   currentUserId: string
   currentMemberId?: string
+  trip: TripDto
+  canRemove: boolean
+  onRemove: (m: TripMember) => void
 }) {
   const { t } = useTranslation()
   const visibleMembers = useMemo(
@@ -458,6 +641,10 @@ function MembersSection({
       </Text>
       {visibleMembers.map((m) => {
         const result = getMemberCurrentState(m.id, schedules)
+        const isCreator = m.user?.id === trip.createdByUserId
+        const isOrganizerMember = m.role === 'organizer'
+        const removable =
+          canRemove && !isCreator && !isOrganizerMember && m.status !== 'invited'
         return (
           <MemberStatusRow
             key={m.id}
@@ -468,6 +655,7 @@ function MembersSection({
                 ? m.id === currentMemberId
                 : m.user?.id === currentUserId
             }
+            onRemove={removable ? () => onRemove(m) : undefined}
           />
         )
       })}

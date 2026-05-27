@@ -11,8 +11,7 @@ import { cn } from '@/lib/cn'
 import {
   CLABE_RE,
   COMMON_BANKS,
-  type DraftTrip,
-} from '../_wizard'
+} from '@/lib/trips/wizard'
 
 import type { StepProps } from './Step1'
 

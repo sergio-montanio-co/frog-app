@@ -16,6 +16,10 @@ export type TripStatus = TripListItem['status']
 export type CreateTripBody = components['schemas']['CreateTripDto']
 export type CreatedTripResponse = components['schemas']['TripDto']
 export type TripDto = components['schemas']['TripDto']
+export type UpdateTripBody = components['schemas']['UpdateTripDto']
+export type InviteMemberBody = components['schemas']['InviteMemberDto']
+export type ReleaseSavingsPlanBody =
+  components['schemas']['ReleaseSavingsPlanDto']
 export type TripMember = components['schemas']['TripMemberDto']
 export type TripSavingsPlan = components['schemas']['TripSavingsPlanListItemDto']
 export type CreateSavingsPlanBody =
@@ -454,6 +458,105 @@ export function useMarkAllNotificationsRead() {
       qc.invalidateQueries({
         queryKey: ['me', 'notifications', 'unread-count'],
       })
+    },
+  })
+}
+
+export function useUpdateTrip() {
+  const client = useApiClient()
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, body }: { id: string; body: UpdateTripBody }) =>
+      client
+        .PATCH('/trips/{id}', { params: { path: { id } }, body })
+        .then(unwrap),
+    onSuccess: (trip) => {
+      qc.setQueryData(['trip', trip.id], trip)
+      qc.invalidateQueries({ queryKey: ['trips'] })
+    },
+  })
+}
+
+export function useInviteMember(tripId: string) {
+  const client = useApiClient()
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (body: InviteMemberBody) =>
+      client
+        .POST('/trips/{tripId}/members', {
+          params: { path: { tripId } },
+          body,
+        })
+        .then(unwrap),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['trip', tripId] })
+      qc.invalidateQueries({ queryKey: ['trips'] })
+    },
+  })
+}
+
+export function useRemoveMember(tripId: string) {
+  const client = useApiClient()
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: async (memberId: string) => {
+      const result = await client.DELETE(
+        '/trips/{tripId}/members/{memberId}',
+        { params: { path: { tripId, memberId } } },
+      )
+      if (result.response.status !== 204) {
+        throw new ApiError(result.response.status, null)
+      }
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['trip', tripId] })
+      qc.invalidateQueries({ queryKey: ['trips'] })
+    },
+  })
+}
+
+export function useLeaveTrip() {
+  const client = useApiClient()
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: async (tripId: string) => {
+      const { error, response } = await client.POST(
+        '/trips/{tripId}/members/leave',
+        { params: { path: { tripId } } },
+      )
+      if (error != null) throw new ApiError(response.status, error)
+      if (response.status !== 204) {
+        throw new ApiError(response.status, null)
+      }
+      return tripId
+    },
+    onSuccess: (tripId) => {
+      qc.removeQueries({ queryKey: ['trip', tripId] })
+      qc.invalidateQueries({ queryKey: ['trips'] })
+    },
+  })
+}
+
+export function useReleaseSavingsPlan(tripId: string) {
+  const client = useApiClient()
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({
+      planId,
+      notes,
+    }: {
+      planId: string
+      notes?: string
+    }) =>
+      client
+        .POST('/trips/{tripId}/savings-plans/{planId}/release', {
+          params: { path: { tripId, planId } },
+          body: { notes },
+        })
+        .then(unwrap),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['trip', tripId] })
+      qc.invalidateQueries({ queryKey: ['trips'] })
     },
   })
 }

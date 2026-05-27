@@ -5,7 +5,7 @@ import { Input, Text } from '@/components/atoms'
 import { WizardStep } from '@/components/molecules'
 import { colors } from '@/theme/colors'
 
-import type { DraftTrip } from '../_wizard'
+import type { DraftTrip } from '@/lib/trips/wizard'
 
 export type StepProps = {
   draft: DraftTrip

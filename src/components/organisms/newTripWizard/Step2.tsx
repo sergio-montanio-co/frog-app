@@ -10,8 +10,7 @@ import {
   MAX_DEADLINE_DAYS,
   MIN_DEADLINE_DAYS,
   validateStep,
-  type DraftTrip,
-} from '../_wizard'
+} from '@/lib/trips/wizard'
 
 import type { StepProps } from './Step1'
 

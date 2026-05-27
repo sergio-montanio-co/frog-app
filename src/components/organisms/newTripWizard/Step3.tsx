@@ -12,7 +12,7 @@ import { CostBreakdownRow, WizardStep } from '@/components/molecules'
 import type { CostCategory } from '@/components/molecules'
 import { colors } from '@/theme/colors'
 
-import { validateStep, type DraftTrip } from '../_wizard'
+import { validateStep } from '@/lib/trips/wizard'
 
 import type { StepProps } from './Step1'
 

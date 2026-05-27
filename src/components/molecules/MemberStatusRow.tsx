@@ -1,7 +1,7 @@
 import { View } from 'react-native'
 import { useTranslation } from 'react-i18next'
 
-import { Avatar, Badge, Icon, Text } from '@/components/atoms'
+import { Avatar, Badge, Icon, IconButton, Text } from '@/components/atoms'
 import type { BadgeTone } from '@/components/atoms'
 import { colors } from '@/theme/colors'
 import { cn } from '@/lib/cn'
@@ -12,6 +12,7 @@ export type MemberStatusRowProps = {
   member: TripMember
   status: MemberCuotaStatus | null
   isCurrentUser?: boolean
+  onRemove?: () => void
   className?: string
 }
 
@@ -43,6 +44,7 @@ export function MemberStatusRow({
   member,
   status,
   isCurrentUser,
+  onRemove,
   className,
 }: MemberStatusRowProps) {
   const { t } = useTranslation()
@@ -92,6 +94,14 @@ export function MemberStatusRow({
             />
           ) : null}
         </Badge>
+      ) : null}
+      {onRemove ? (
+        <IconButton
+          name="more-vert"
+          variant="ghost"
+          accessibilityLabel={t('trips.admin.removeMember.cta')}
+          onPress={onRemove}
+        />
       ) : null}
     </View>
   )

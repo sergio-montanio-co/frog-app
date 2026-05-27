@@ -15,7 +15,7 @@ import {
 import { useTrip } from '@/lib/api/queries'
 import { colors } from '@/theme/colors'
 
-import { pickInvitations } from '../_wizard'
+import { pickInvitations } from '@/lib/trips/wizard'
 
 type InvitationItem = ReturnType<typeof pickInvitations>[number]
 

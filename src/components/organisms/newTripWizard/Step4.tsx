@@ -8,7 +8,7 @@ import {
   MAX_MEMBERS,
   detectContactKind,
   validateStep,
-} from '../_wizard'
+} from '@/lib/trips/wizard'
 
 import type { StepProps } from './Step1'
 

@@ -23,6 +23,8 @@ const esStrict = {
     filter: 'Filtrar',
     clear: 'Limpiar',
     all: 'Todas',
+    understood: 'Entendido',
+    saveChanges: 'Guardar cambios',
   },
   auth: {
     signIn: {
@@ -481,6 +483,83 @@ const esStrict = {
         goToTrip: 'Ir al viaje',
         noInvitations:
           'Este viaje no tiene invitaciones pendientes.',
+      },
+    },
+    edit: {
+      headerTitle: 'Editar viaje',
+      title: 'Editar viaje',
+      submit: 'Guardar cambios',
+      noChanges: 'No hiciste cambios.',
+      genericError: 'No pudimos guardar los cambios. Intenta de nuevo.',
+      section: {
+        basics: 'El viaje',
+        destination: 'Destino',
+        dates: 'Fechas reales del viaje',
+        account: 'Cuenta del organizador',
+      },
+    },
+    admin: {
+      editTrip: {
+        cta: 'Editar viaje',
+      },
+      release: {
+        cta: 'Liberar fondos',
+        dialog: {
+          title: 'Liberar fondos · {{tripName}}',
+          body: 'Esto cierra el ciclo de ahorro. Los miembros ya no podrán reportar pagos y esta acción no se puede deshacer.',
+          notesLabel: 'Notas para el grupo (opcional)',
+          notesPlaceholder: 'Avísale al grupo, por ejemplo: ya reservé los vuelos.',
+          notesCounter: '{{count}} / 1000',
+          confirm: 'Liberar fondos',
+        },
+        pendingWarning: {
+          one: 'Hay {{count}} pago pendiente de revisar. Apruébalo o recházalo antes de liberar.',
+          other: 'Hay {{count}} pagos pendientes de revisar. Apruébalos o recházalos antes de liberar.',
+        },
+        reviewPending: 'Revisar pendientes',
+        releaseAnyway: 'Liberar de todas formas',
+        confirmAnyway: {
+          title: 'Liberar con pagos pendientes',
+          body: 'Si liberas ahora, los pagos pendientes no podrán confirmarse. Esta acción no se puede deshacer.',
+          confirm: 'Sí, liberar',
+        },
+        warningsTitle: 'Plan liberado con avisos',
+        warningsSubtitle:
+          'El plan ya está liberado. Toma nota de estos avisos para hablarlo con el grupo.',
+      },
+      leave: {
+        cta: 'Salir del viaje',
+        title: '¿Salir de {{tripName}}?',
+        body: 'Vas a salir del viaje. Si has reportado pagos, hablalo con el organizador. Esta acción no se puede deshacer.',
+        confirm: 'Sí, salir',
+        genericError: 'No pudimos sacarte del viaje. Intenta de nuevo.',
+      },
+      removeMember: {
+        cta: 'Acciones del miembro',
+        title: 'Remover a {{name}}',
+        body: 'Sus pagos confirmados se mantienen, pero ya no contará para el ahorro del grupo.',
+        confirm: 'Sí, remover',
+        genericError: 'No pudimos remover al miembro. Intenta de nuevo.',
+      },
+      inviteLate: {
+        cta: 'Invitar a alguien más',
+        title: 'Invitar a alguien más',
+        submit: 'Enviar invitación',
+        namePlaceholder: 'Nombre',
+        contactPlaceholder: 'Correo o teléfono',
+        helper:
+          'Le mandamos un link para unirse al viaje. Caduca en 7 días.',
+        error: {
+          nameRequired: 'Escribe el nombre.',
+          contactInvalid: 'Necesita un correo o un teléfono válido.',
+          duplicate: 'Ya existe un miembro con ese correo o teléfono.',
+          isSolo: 'Este viaje está marcado como solo. No puedes invitar a nadie.',
+          generic: 'No pudimos enviar la invitación. Intenta de nuevo.',
+        },
+      },
+      purchaseReady: {
+        title: 'Viaje comprado',
+        body: 'El organizador liberó los fondos. Ya no hay pagos por reportar para este plan.',
       },
     },
   },
