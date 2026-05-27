@@ -44,9 +44,11 @@ Marcados como "necesarios desde sesión X" para no inflar el scope:
 | Badge        | 4      | creado   |
 | Divider      | 4      | creado   |
 | SegmentedControl | 4  | creado   |
+| ConfirmDialog | 5     | creado   |
+| CopyableField | 5     | creado   |
 | Checkbox     | 5      | pendiente |
 
-Molecules creadas: `TripCard` (sesión 2), `WizardStep` · `MemberInputRow` · `CostBreakdownRow` (sesión 3), `Countdown` · `UpcomingInstallmentBanner` · `MemberStatusRow` · `PlanSummaryCard` (sesión 4).
+Molecules creadas: `TripCard` (sesión 2), `WizardStep` · `MemberInputRow` · `CostBreakdownRow` (sesión 3), `Countdown` · `UpcomingInstallmentBanner` · `MemberStatusRow` · `PlanSummaryCard` (sesión 4), `BankAccountInfo` · `ContributionHistoryItem` (sesión 5).
 
 ## Convenciones de implementación
 

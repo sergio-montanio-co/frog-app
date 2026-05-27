@@ -1,6 +1,7 @@
 import type {
   MemberCuotaStatus,
   PaymentSchedule,
+  ResponsibleAccount,
   TripDto,
   TripSavingsPlan,
 } from '@/lib/api/queries'
@@ -56,4 +57,18 @@ export function todayIsoStart(): string {
   const d = new Date()
   d.setHours(0, 0, 0, 0)
   return d.toISOString()
+}
+
+export function getResponsibleAccount(
+  trip: TripDto,
+): ResponsibleAccount | null {
+  const raw = trip.responsibleAccountInfo
+  if (!raw || typeof raw !== 'object') return null
+  const holderName = typeof raw.holderName === 'string' ? raw.holderName : ''
+  const clabe = typeof raw.clabe === 'string' ? raw.clabe : ''
+  const bank = typeof raw.bank === 'string' ? raw.bank : ''
+  if (!holderName || !clabe || !bank) return null
+  const instructions =
+    typeof raw.instructions === 'string' ? raw.instructions : undefined
+  return { holderName, clabe, bank, instructions }
 }

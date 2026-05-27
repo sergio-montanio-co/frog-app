@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import { ScrollView, View } from 'react-native'
+import { Pressable, ScrollView, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import { useTranslation } from 'react-i18next'
@@ -23,6 +23,7 @@ import { colors } from '@/theme/colors'
 import { formatMxn } from '@/lib/money'
 import {
   useMe,
+  useMyContributions,
   useTrip,
   useTripSchedules,
   useUpcomingInstallment,
@@ -47,6 +48,8 @@ export default function TripDashboard() {
   const activePlan = trip.data ? findActivePurchasePlan(trip.data) : null
   const schedules = useTripSchedules(id, activePlan?.id)
   const upcoming = useUpcomingInstallment(id)
+  const myContribs = useMyContributions(id)
+  const hasHistory = (myContribs.data?.items.length ?? 0) > 0
 
   if (trip.isLoading || me.isLoading) return <Splash />
 
@@ -115,6 +118,21 @@ export default function TripDashboard() {
 
             <GroupProgressCard trip={trip.data} />
             <PlanSummaryCard plan={activePlan} />
+            {hasHistory ? (
+              <Pressable
+                onPress={() =>
+                  router.push(`/trips/${trip.data.id}/contributions`)
+                }
+                accessibilityRole="button"
+                accessibilityLabel={t('trips.dashboard.viewHistory')}
+                className="flex-row items-center gap-2 self-start px-2 py-2"
+              >
+                <Icon name="history" size={20} color={colors.primary} />
+                <Text variant="body-em" tone="primary">
+                  {t('trips.dashboard.viewHistory')}
+                </Text>
+              </Pressable>
+            ) : null}
             <MembersSection
               members={trip.data.members}
               schedules={schedules.data?.items ?? []}

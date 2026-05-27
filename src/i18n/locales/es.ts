@@ -13,6 +13,11 @@ const esStrict = {
     retry: 'Reintentar',
     error: 'Algo salió mal. Intenta de nuevo.',
     comingSoon: 'Próximamente',
+    delete: 'Eliminar',
+    edit: 'Editar',
+    copy: 'Copiar',
+    copied: 'Copiado',
+    copyAll: 'Copiar todo',
   },
   auth: {
     signIn: {
@@ -121,6 +126,7 @@ const esStrict = {
         startsAt: 'Inicia el {{date}}',
         endsAt: 'Termina el {{date}}',
       },
+      viewHistory: 'Ver historial',
     },
     plan: {
       headerTitle: 'Configurar ahorro',
@@ -162,6 +168,78 @@ const esStrict = {
         pending: 'Pendiente',
       },
       pendingAcceptance: 'Pendiente de aceptar',
+    },
+    contributions: {
+      new: {
+        headerTitle: 'Reportar pago',
+        title: 'Reporta tu pago',
+        installmentLabel: 'Cuota {{n}}',
+        dueOn: 'Vence el {{date}}',
+        overdueDays: {
+          one: 'Venció hace {{count}} día',
+          other: 'Venció hace {{count}} días',
+        },
+        dueToday: 'Vence hoy',
+        remainingHint: 'Te falta cubrir {{remaining}} de {{target}}',
+        amountLabel: 'Monto que vas a reportar',
+        amountHelper:
+          'Puedes reportar un monto menor si vas a pagar en partes.',
+        notesLabel: 'Notas (opcional)',
+        notesPlaceholder:
+          'Referencia del SPEI, comentarios para el organizador…',
+        notesCount: '{{count}} / 500',
+        account: {
+          title: 'Cuenta del organizador',
+          holder: 'Titular',
+          bank: 'Banco',
+          clabe: 'CLABE',
+          instructions: 'Instrucciones',
+          empty:
+            'El organizador aún no agregó su cuenta. Pídele que la configure desde el viaje.',
+          copyAll: 'Copiar todo',
+          copyTemplate:
+            '{{tripName}}\nTitular: {{holder}}\nBanco: {{bank}}\nCLABE: {{clabe}}\nMonto: {{amount}}\nReferencia: tu nombre completo',
+        },
+        disclaimer:
+          'Reportar el pago no transfiere dinero. Tu reporte queda pendiente de aprobación por el organizador.',
+        submit: 'Reportar pago',
+        error: {
+          amountZero: 'El monto debe ser mayor a 0.',
+          amountMax: 'El monto excede el máximo permitido.',
+          notesTooLong: 'Las notas no pueden pasar de 500 caracteres.',
+          generic: 'No pudimos reportar el pago. Intenta de nuevo.',
+        },
+        noUpcoming: 'No hay cuotas pendientes para reportar.',
+        planLocked: 'El plan no admite contribuciones ahora mismo.',
+      },
+      history: {
+        headerTitle: 'Mi historial',
+        title: 'Mi historial',
+        subtitle: '{{tripName}}',
+        empty: 'Aún no has reportado pagos para este viaje.',
+        installmentHeader: 'Cuota {{n}} · vence {{date}}',
+        installmentHeaderNoDate: 'Cuota {{n}}',
+        reportedOn: 'Reportaste el {{date}}',
+      },
+      status: {
+        reported: 'Reportado',
+        confirmed: 'Confirmado',
+        failed: 'Fallido',
+        refunded: 'Reembolsado',
+        rejected: 'Rechazado',
+      },
+      edit: {
+        headerTitle: 'Editar reporte',
+        title: 'Editar reporte',
+        submit: 'Guardar cambios',
+        notEditable:
+          'Esta contribución ya no se puede editar porque cambió de estado.',
+      },
+      cancel: {
+        title: 'Cancelar reporte',
+        body: 'Vas a borrar el reporte de {{amount}}. Esta acción no se puede deshacer.',
+        confirm: 'Sí, cancelar',
+      },
     },
     new: {
       next: 'Siguiente',

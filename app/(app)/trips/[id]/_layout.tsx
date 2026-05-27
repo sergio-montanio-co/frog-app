@@ -12,6 +12,15 @@ export default function TripLayout() {
         }}
       />
       <Stack.Screen name="invitations-created" />
+      <Stack.Screen name="contributions/new" />
+      <Stack.Screen name="contributions/index" />
+      <Stack.Screen
+        name="contributions/[contributionId]/edit"
+        options={{
+          presentation: 'modal',
+          animation: 'slide_from_bottom',
+        }}
+      />
     </Stack>
   )
 }

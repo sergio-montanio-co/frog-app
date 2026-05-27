@@ -30,3 +30,7 @@ export type {
   SegmentedControlProps,
   SegmentedOption,
 } from './SegmentedControl'
+export { ConfirmDialog } from './ConfirmDialog'
+export type { ConfirmDialogProps } from './ConfirmDialog'
+export { CopyableField } from './CopyableField'
+export type { CopyableFieldProps } from './CopyableField'

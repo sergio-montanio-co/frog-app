@@ -11,6 +11,11 @@ export const en: TranslationSchema = {
     retry: 'Retry',
     error: 'Something went wrong. Try again.',
     comingSoon: 'Coming soon',
+    delete: 'Delete',
+    edit: 'Edit',
+    copy: 'Copy',
+    copied: 'Copied',
+    copyAll: 'Copy all',
   },
   auth: {
     signIn: {
@@ -119,6 +124,7 @@ export const en: TranslationSchema = {
         startsAt: 'Starts on {{date}}',
         endsAt: 'Ends on {{date}}',
       },
+      viewHistory: 'View history',
     },
     plan: {
       headerTitle: 'Set up savings',
@@ -160,6 +166,76 @@ export const en: TranslationSchema = {
         pending: 'Pending',
       },
       pendingAcceptance: 'Pending acceptance',
+    },
+    contributions: {
+      new: {
+        headerTitle: 'Report payment',
+        title: 'Report your payment',
+        installmentLabel: 'Installment {{n}}',
+        dueOn: 'Due {{date}}',
+        overdueDays: {
+          one: 'Overdue by {{count}} day',
+          other: 'Overdue by {{count}} days',
+        },
+        dueToday: 'Due today',
+        remainingHint: 'You still owe {{remaining}} of {{target}}',
+        amountLabel: 'Amount to report',
+        amountHelper: 'You can report a smaller amount if paying in parts.',
+        notesLabel: 'Notes (optional)',
+        notesPlaceholder:
+          'SPEI reference, notes for the organizer…',
+        notesCount: '{{count}} / 500',
+        account: {
+          title: "Organizer's account",
+          holder: 'Holder',
+          bank: 'Bank',
+          clabe: 'CLABE',
+          instructions: 'Instructions',
+          empty:
+            "The organizer hasn't added their account yet. Ask them to set it up from the trip.",
+          copyAll: 'Copy all',
+          copyTemplate:
+            '{{tripName}}\nHolder: {{holder}}\nBank: {{bank}}\nCLABE: {{clabe}}\nAmount: {{amount}}\nReference: your full name',
+        },
+        disclaimer:
+          "Reporting the payment doesn't transfer money. Your report stays pending until the organizer approves it.",
+        submit: 'Report payment',
+        error: {
+          amountZero: 'Amount must be greater than 0.',
+          amountMax: 'Amount exceeds the maximum allowed.',
+          notesTooLong: 'Notes cannot exceed 500 characters.',
+          generic: "Couldn't report the payment. Try again.",
+        },
+        noUpcoming: 'No pending installments to report.',
+        planLocked: "The plan doesn't accept contributions right now.",
+      },
+      history: {
+        headerTitle: 'My history',
+        title: 'My history',
+        subtitle: '{{tripName}}',
+        empty: "You haven't reported any payments for this trip yet.",
+        installmentHeader: 'Installment {{n}} · due {{date}}',
+        installmentHeaderNoDate: 'Installment {{n}}',
+        reportedOn: 'Reported on {{date}}',
+      },
+      status: {
+        reported: 'Reported',
+        confirmed: 'Confirmed',
+        failed: 'Failed',
+        refunded: 'Refunded',
+        rejected: 'Rejected',
+      },
+      edit: {
+        headerTitle: 'Edit report',
+        title: 'Edit report',
+        submit: 'Save changes',
+        notEditable: 'This contribution can no longer be edited.',
+      },
+      cancel: {
+        title: 'Cancel report',
+        body: "You're going to delete the {{amount}} report. This action can't be undone.",
+        confirm: 'Yes, cancel',
+      },
     },
     new: {
       next: 'Next',
