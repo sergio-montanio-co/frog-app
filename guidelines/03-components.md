@@ -41,11 +41,12 @@ Marcados como "necesarios desde sesión X" para no inflar el scope:
 | IconButton   | 3      | creado   |
 | DateField    | 3      | creado   |
 | MoneyInput   | 3      | creado   |
-| Badge        | 4      | pendiente |
-| Divider      | 4      | pendiente |
+| Badge        | 4      | creado   |
+| Divider      | 4      | creado   |
+| SegmentedControl | 4  | creado   |
 | Checkbox     | 5      | pendiente |
 
-Molecules creadas: `TripCard` (sesión 2), `WizardStep` · `MemberInputRow` · `CostBreakdownRow` (sesión 3).
+Molecules creadas: `TripCard` (sesión 2), `WizardStep` · `MemberInputRow` · `CostBreakdownRow` (sesión 3), `Countdown` · `UpcomingInstallmentBanner` · `MemberStatusRow` · `PlanSummaryCard` (sesión 4).
 
 ## Convenciones de implementación
 

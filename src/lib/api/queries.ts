@@ -9,7 +9,15 @@ export type TripListItem = components['schemas']['TripListItemDto']
 export type TripStatus = TripListItem['status']
 export type CreateTripBody = components['schemas']['CreateTripDto']
 export type CreatedTripResponse = components['schemas']['TripDto']
+export type TripDto = components['schemas']['TripDto']
 export type TripMember = components['schemas']['TripMemberDto']
+export type TripSavingsPlan = components['schemas']['TripSavingsPlanListItemDto']
+export type CreateSavingsPlanBody =
+  components['schemas']['CreateSavingsPlanDto']
+export type SavingsPlanDto = components['schemas']['SavingsPlanDto']
+export type PaymentSchedule = components['schemas']['PaymentScheduleDto']
+export type MemberCuotaStatus = components['schemas']['MemberCuotaStatusDto']
+export type UpcomingSchedule = components['schemas']['UpcomingScheduleDto']
 
 const ACTIVE_STATUSES: TripStatus[] = [
   'draft',
@@ -92,6 +100,62 @@ export function useCreateTrip() {
       client.POST('/trips', { body }).then(unwrap),
     onSuccess: (trip) => {
       qc.setQueryData(['trip', trip.id], trip)
+      qc.invalidateQueries({ queryKey: ['trips'] })
+    },
+  })
+}
+
+export function useTripSchedules(
+  tripId: string | undefined,
+  planId: string | undefined,
+) {
+  const client = useApiClient()
+  return useQuery({
+    enabled: Boolean(tripId) && Boolean(planId),
+    queryKey: ['trip', tripId, 'plan', planId, 'schedules'] as const,
+    queryFn: () =>
+      client
+        .GET('/trips/{tripId}/savings-plans/{planId}/schedules', {
+          params: {
+            path: { tripId: tripId as string, planId: planId as string },
+          },
+        })
+        .then(unwrap),
+  })
+}
+
+export function useUpcomingInstallment(tripId: string | undefined) {
+  const client = useApiClient()
+  return useQuery({
+    enabled: Boolean(tripId),
+    queryKey: ['trip', tripId, 'upcoming'] as const,
+    queryFn: async (): Promise<UpcomingSchedule | null> => {
+      const { data, error, response } = await client.GET(
+        '/trips/{tripId}/schedules/upcoming',
+        { params: { path: { tripId: tripId as string } } },
+      )
+      if (response.status === 204) return null
+      if (error != null || data === undefined) {
+        throw new ApiError(response.status, error)
+      }
+      return data
+    },
+  })
+}
+
+export function useCreateSavingsPlan(tripId: string) {
+  const client = useApiClient()
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (body: CreateSavingsPlanBody) =>
+      client
+        .POST('/trips/{tripId}/savings-plans', {
+          params: { path: { tripId } },
+          body,
+        })
+        .then(unwrap),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['trip', tripId] })
       qc.invalidateQueries({ queryKey: ['trips'] })
     },
   })

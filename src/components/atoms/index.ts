@@ -21,3 +21,12 @@ export type { DateFieldProps } from './DateField'
 export { MoneyInput } from './MoneyInput'
 export type { MoneyInputProps } from './MoneyInput'
 export { Splash } from './Splash'
+export { Badge } from './Badge'
+export type { BadgeProps, BadgeTone } from './Badge'
+export { Divider } from './Divider'
+export type { DividerProps } from './Divider'
+export { SegmentedControl } from './SegmentedControl'
+export type {
+  SegmentedControlProps,
+  SegmentedOption,
+} from './SegmentedControl'

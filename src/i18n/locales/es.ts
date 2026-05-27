@@ -77,6 +77,92 @@ const esStrict = {
     stubTitle: 'Detalle del viaje',
     stubBody: 'Aquí va el dashboard del viaje. Llega en la próxima sesión.',
     stubId: 'ID: {{id}}',
+    dashboard: {
+      back: 'Volver',
+      headerFallback: 'Viaje',
+      daysUntilDeadline: {
+        one: 'día para reservar',
+        other: 'días para reservar',
+      },
+      deadlinePassed: 'Vencido',
+      groupProgress: {
+        title: 'Progreso del grupo',
+        collected: 'Recaudado {{collected}} de {{target}}',
+        percent: '{{percent}} % confirmado',
+        reportedPending: 'Reportado pendiente: {{amount}}',
+      },
+      planEmpty: {
+        organizerTitle: 'Aún no configuras el ahorro',
+        organizerBody:
+          'Define cuánto y cada cuándo quieren ahorrar para iniciar las cuotas.',
+        organizerCta: 'Configurar ahorro',
+        memberTitle: 'Esperando al organizador',
+        memberBody: 'El organizador todavía no configura el plan de ahorro.',
+      },
+      upcoming: {
+        title: 'Tu próxima cuota: {{amount}}',
+        body: 'Tu próxima cuota vence pronto.',
+        cta: 'Reportar pago',
+        daysLeft: {
+          one: 'Vence en {{count}} día',
+          other: 'Vence en {{count}} días',
+        },
+        overdue: 'Vencida hace {{count}} días',
+      },
+      members: {
+        title: 'Miembros',
+        invitedHint: 'Aún sin aceptar la invitación',
+        youPrefix: 'Tú · {{name}}',
+      },
+      planSummary: {
+        title: 'Plan de compra',
+        frequencyLine: 'Cada {{frequency}}',
+        installmentsLine: '{{amount}} por persona · {{count}} cuotas',
+        startsAt: 'Inicia el {{date}}',
+        endsAt: 'Termina el {{date}}',
+      },
+    },
+    plan: {
+      headerTitle: 'Configurar ahorro',
+      title: 'Configura el plan de ahorro',
+      subtitle: 'Define cuánto y cada cuándo quieren ahorrar.',
+      frequency: {
+        label: 'Frecuencia',
+        weekly: 'Semanal',
+        biweekly: 'Quincenal',
+        monthly: 'Mensual',
+      },
+      startDate: {
+        label: 'Fecha de inicio',
+        helper: 'Cuándo empieza el ahorro.',
+      },
+      targetDate: {
+        label: 'Fecha objetivo',
+        helper: 'Cuándo debería estar listo todo el dinero.',
+      },
+      amount: {
+        label: 'Monto objetivo por persona',
+        helper: '{{count}} cuotas estimadas según la frecuencia.',
+      },
+      submit: 'Crear plan',
+      cancel: 'Cancelar',
+      error: {
+        startPast: 'La fecha de inicio no puede estar en el pasado.',
+        targetBeforeStart: 'La fecha objetivo debe ser después del inicio.',
+        zeroAmount: 'El monto debe ser mayor a 0.',
+        generic: 'No pudimos crear el plan. Intenta de nuevo.',
+      },
+    },
+    member: {
+      state: {
+        paid: 'Pagado',
+        partial: 'Parcial',
+        reported: 'Reportado',
+        late: 'Atrasado',
+        pending: 'Pendiente',
+      },
+      pendingAcceptance: 'Pendiente de aceptar',
+    },
     new: {
       next: 'Siguiente',
       create: 'Crear viaje',

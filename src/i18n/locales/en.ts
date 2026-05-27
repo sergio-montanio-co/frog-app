@@ -75,6 +75,92 @@ export const en: TranslationSchema = {
     stubTitle: 'Trip detail',
     stubBody: 'Trip dashboard goes here. Coming next session.',
     stubId: 'ID: {{id}}',
+    dashboard: {
+      back: 'Back',
+      headerFallback: 'Trip',
+      daysUntilDeadline: {
+        one: 'day to book',
+        other: 'days to book',
+      },
+      deadlinePassed: 'Past due',
+      groupProgress: {
+        title: 'Group progress',
+        collected: '{{collected}} of {{target}} collected',
+        percent: '{{percent}} % confirmed',
+        reportedPending: 'Reported pending: {{amount}}',
+      },
+      planEmpty: {
+        organizerTitle: "You haven't set up savings yet",
+        organizerBody:
+          'Pick how much and how often the group will save to start the installments.',
+        organizerCta: 'Set up savings',
+        memberTitle: 'Waiting on the organizer',
+        memberBody: "The organizer hasn't configured the savings plan yet.",
+      },
+      upcoming: {
+        title: 'Your next installment: {{amount}}',
+        body: 'Your next installment is due soon.',
+        cta: 'Report payment',
+        daysLeft: {
+          one: 'Due in {{count}} day',
+          other: 'Due in {{count}} days',
+        },
+        overdue: 'Overdue by {{count}} days',
+      },
+      members: {
+        title: 'Members',
+        invitedHint: 'Invitation not accepted yet',
+        youPrefix: 'You · {{name}}',
+      },
+      planSummary: {
+        title: 'Purchase plan',
+        frequencyLine: 'Every {{frequency}}',
+        installmentsLine: '{{amount}} per person · {{count}} installments',
+        startsAt: 'Starts on {{date}}',
+        endsAt: 'Ends on {{date}}',
+      },
+    },
+    plan: {
+      headerTitle: 'Set up savings',
+      title: 'Set up the savings plan',
+      subtitle: 'Pick how much and how often you want to save.',
+      frequency: {
+        label: 'Frequency',
+        weekly: 'Weekly',
+        biweekly: 'Biweekly',
+        monthly: 'Monthly',
+      },
+      startDate: {
+        label: 'Start date',
+        helper: 'When saving begins.',
+      },
+      targetDate: {
+        label: 'Target date',
+        helper: 'When the money should be ready.',
+      },
+      amount: {
+        label: 'Target amount per person',
+        helper: '{{count}} estimated installments based on the frequency.',
+      },
+      submit: 'Create plan',
+      cancel: 'Cancel',
+      error: {
+        startPast: 'Start date cannot be in the past.',
+        targetBeforeStart: 'Target date must be after the start.',
+        zeroAmount: 'Amount must be greater than 0.',
+        generic: "Couldn't create the plan. Try again.",
+      },
+    },
+    member: {
+      state: {
+        paid: 'Paid',
+        partial: 'Partial',
+        reported: 'Reported',
+        late: 'Late',
+        pending: 'Pending',
+      },
+      pendingAcceptance: 'Pending acceptance',
+    },
     new: {
       next: 'Next',
       create: 'Create trip',
