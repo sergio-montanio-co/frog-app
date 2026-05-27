@@ -12,6 +12,7 @@ export type ContributionHistoryItemProps = {
   canEdit?: boolean
   onEdit?: () => void
   onCancel?: () => void
+  memberName?: string
   className?: string
 }
 
@@ -64,6 +65,7 @@ export function ContributionHistoryItem({
   canEdit,
   onEdit,
   onCancel,
+  memberName,
   className,
 }: ContributionHistoryItemProps) {
   const { t, i18n } = useTranslation()
@@ -81,6 +83,11 @@ export function ContributionHistoryItem({
           <Text variant="body-em">{formatMxn(contribution.amount)}</Text>
           <Badge label={t(meta.i18nKey)} tone={meta.tone} />
         </View>
+        {memberName ? (
+          <Text variant="caption" tone="secondary">
+            {memberName}
+          </Text>
+        ) : null}
         {dateLabel ? (
           <Text variant="caption" tone="secondary">
             {t('trips.contributions.history.reportedOn', { date: dateLabel })}

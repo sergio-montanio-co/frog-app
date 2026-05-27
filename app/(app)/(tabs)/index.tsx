@@ -1,13 +1,19 @@
 import { useState } from 'react'
-import { FlatList, Pressable, View } from 'react-native'
+import { FlatList, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useRouter } from 'expo-router'
 import { useTranslation } from 'react-i18next'
 
-import { Button, Card, Icon, Text } from '@/components/atoms'
+import {
+  Button,
+  Card,
+  EmptyState,
+  Icon,
+  Text,
+  TogglePill,
+} from '@/components/atoms'
 import { TripCard } from '@/components/molecules/TripCard'
 import { useTrips, type TripsTab } from '@/lib/api/queries'
-import { cn } from '@/lib/cn'
 import { colors } from '@/theme/colors'
 
 export default function MyTripsScreen() {
@@ -26,12 +32,12 @@ export default function MyTripsScreen() {
         <Text variant="display">{t('trips.title')}</Text>
 
         <View className="flex-row gap-2">
-          <TabButton
+          <TogglePill
             label={t('trips.tabActive')}
             active={tab === 'active'}
             onPress={() => setTab('active')}
           />
-          <TabButton
+          <TogglePill
             label={t('trips.tabPast')}
             active={tab === 'past'}
             onPress={() => setTab('past')}
@@ -41,7 +47,7 @@ export default function MyTripsScreen() {
         <View className="flex-1">
           {isLoading && <SkeletonList />}
           {isError && <ErrorState onRetry={() => refetch()} />}
-          {showEmpty && <EmptyState tab={tab} />}
+          {showEmpty && <TripsEmpty tab={tab} />}
           {showList && (
             <FlatList
               data={items}
@@ -62,33 +68,6 @@ export default function MyTripsScreen() {
         />
       </View>
     </SafeAreaView>
-  )
-}
-
-function TabButton({
-  label,
-  active,
-  onPress,
-}: {
-  label: string
-  active: boolean
-  onPress: () => void
-}) {
-  return (
-    <Pressable
-      onPress={onPress}
-      accessibilityRole="tab"
-      accessibilityLabel={label}
-      accessibilityState={{ selected: active }}
-      className={cn(
-        'h-11 px-4 rounded-card items-center justify-center border-hairline',
-        active ? 'bg-primary border-primary' : 'bg-background border-muted',
-      )}
-    >
-      <Text variant="body-em" tone={active ? 'background' : 'foreground'}>
-        {label}
-      </Text>
-    </Pressable>
   )
 }
 
@@ -126,20 +105,20 @@ function ErrorState({ onRetry }: { onRetry: () => void }) {
   )
 }
 
-function EmptyState({ tab }: { tab: TripsTab }) {
+function TripsEmpty({ tab }: { tab: TripsTab }) {
   const { t } = useTranslation()
   const title =
     tab === 'active' ? t('trips.emptyActiveTitle') : t('trips.emptyPastTitle')
   const body =
     tab === 'active' ? t('trips.emptyActiveBody') : t('trips.emptyPastBody')
   return (
-    <View className="flex-1 items-center justify-center gap-2 px-6">
-      <Text variant="title" tone="foreground" className="text-center">
-        {title}
-      </Text>
-      <Text variant="body" tone="secondary" className="text-center">
-        {body}
-      </Text>
+    <View className="flex-1 items-center justify-center px-2">
+      <EmptyState
+        icon={tab === 'active' ? 'flight-takeoff' : 'history'}
+        title={title}
+        body={body}
+        className="self-stretch"
+      />
     </View>
   )
 }

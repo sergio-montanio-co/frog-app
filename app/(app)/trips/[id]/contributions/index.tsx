@@ -8,7 +8,7 @@ import {
   Button,
   ConfirmDialog,
   Divider,
-  Icon,
+  EmptyState,
   IconButton,
   Splash,
   Text,
@@ -26,7 +26,6 @@ import {
 } from '@/lib/api/queries'
 import { findActivePurchasePlan } from '@/lib/trips/helpers'
 import { formatMxn } from '@/lib/money'
-import { colors } from '@/theme/colors'
 
 type Group = {
   scheduleId: string
@@ -147,12 +146,10 @@ export default function ContributionHistoryScreen() {
         </View>
 
         {groups.length === 0 ? (
-          <View className="gap-4 items-center rounded-card border-hairline border-muted p-6">
-            <Icon name="history" size={32} color={colors.secondary} />
-            <Text variant="body" tone="secondary" className="text-center">
-              {t('trips.contributions.history.empty')}
-            </Text>
-          </View>
+          <EmptyState
+            icon="history"
+            title={t('trips.contributions.history.empty')}
+          />
         ) : (
           groups.map((g) => (
             <View key={g.scheduleId} className="gap-2">

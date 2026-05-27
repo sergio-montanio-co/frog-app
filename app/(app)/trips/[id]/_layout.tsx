@@ -21,6 +21,7 @@ export default function TripLayout() {
           animation: 'slide_from_bottom',
         }}
       />
+      <Stack.Screen name="organizer" />
     </Stack>
   )
 }

@@ -3,6 +3,7 @@ import type {
   PaymentSchedule,
   ResponsibleAccount,
   TripDto,
+  TripMember,
   TripSavingsPlan,
 } from '@/lib/api/queries'
 
@@ -13,6 +14,16 @@ export function findActivePurchasePlan(
     trip.savingsPlans.find(
       (p) => p.type === 'trip_purchase' && p.status === 'active',
     ) ?? null
+  )
+}
+
+export function resolveMemberName(member: TripMember): string {
+  return (
+    member.user?.displayName?.trim() ||
+    member.invitedName?.trim() ||
+    member.invitedEmail?.trim() ||
+    member.invitedPhone?.trim() ||
+    ''
   )
 }
 

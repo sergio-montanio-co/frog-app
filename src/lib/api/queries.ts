@@ -26,7 +26,16 @@ export type UpdateContributionDto =
   components['schemas']['UpdateContributionDto']
 export type ContributionListResponse =
   components['schemas']['ContributionListResponseDto']
+export type RejectContributionBody =
+  components['schemas']['RejectContributionDto']
 export type ResponsibleAccount = components['schemas']['ResponsibleAccountDto']
+
+export type ContributionStatusFilter = 'reported' | 'confirmed' | 'failed'
+
+export type TripContributionFilters = {
+  status?: ContributionStatusFilter
+  memberId?: string
+}
 
 const ACTIVE_STATUSES: TripStatus[] = [
   'draft',
@@ -226,6 +235,90 @@ export function useDeleteContribution() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['me', 'contributions'] })
       qc.invalidateQueries({ queryKey: ['trip'] })
+      qc.invalidateQueries({ queryKey: ['trips'] })
+    },
+  })
+}
+
+export function usePendingContributions(
+  tripId: string | undefined,
+  opts?: { enabled?: boolean },
+) {
+  const client = useApiClient()
+  return useQuery({
+    enabled: (opts?.enabled ?? true) && Boolean(tripId),
+    queryKey: ['trip', tripId, 'contributions', 'pending'] as const,
+    queryFn: () =>
+      client
+        .GET('/trips/{tripId}/contributions/pending', {
+          params: { path: { tripId: tripId as string } },
+        })
+        .then(unwrap),
+  })
+}
+
+export function useTripContributions(
+  tripId: string | undefined,
+  filters: TripContributionFilters,
+) {
+  const client = useApiClient()
+  return useQuery({
+    enabled: Boolean(tripId),
+    queryKey: [
+      'trip',
+      tripId,
+      'contributions',
+      'all',
+      filters.status ?? 'any',
+      filters.memberId ?? 'any',
+    ] as const,
+    queryFn: () =>
+      client
+        .GET('/trips/{tripId}/contributions', {
+          params: {
+            path: { tripId: tripId as string },
+            query: {
+              status: filters.status,
+              memberId: filters.memberId,
+            },
+          },
+        })
+        .then(unwrap),
+  })
+}
+
+export function useConfirmContribution(tripId: string) {
+  const client = useApiClient()
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (id: string) =>
+      client
+        .POST('/contributions/{id}/confirm', {
+          params: { path: { id } },
+        })
+        .then(unwrap),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['trip', tripId] })
+      qc.invalidateQueries({ queryKey: ['me', 'contributions'] })
+      qc.invalidateQueries({ queryKey: ['trips'] })
+    },
+  })
+}
+
+export function useRejectContribution(tripId: string) {
+  const client = useApiClient()
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, reason }: { id: string; reason: string }) =>
+      client
+        .POST('/contributions/{id}/reject', {
+          params: { path: { id } },
+          body: { reason },
+        })
+        .then(unwrap),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['trip', tripId] })
+      qc.invalidateQueries({ queryKey: ['me', 'contributions'] })
       qc.invalidateQueries({ queryKey: ['trips'] })
     },
   })

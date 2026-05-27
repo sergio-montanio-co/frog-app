@@ -5,8 +5,10 @@ import { useLocalSearchParams, useRouter } from 'expo-router'
 import { useTranslation } from 'react-i18next'
 
 import {
+  Badge,
   Button,
   Card,
+  Divider,
   Icon,
   IconButton,
   ProgressBar,
@@ -24,6 +26,7 @@ import { formatMxn } from '@/lib/money'
 import {
   useMe,
   useMyContributions,
+  usePendingContributions,
   useTrip,
   useTripSchedules,
   useUpcomingInstallment,
@@ -50,6 +53,12 @@ export default function TripDashboard() {
   const upcoming = useUpcomingInstallment(id)
   const myContribs = useMyContributions(id)
   const hasHistory = (myContribs.data?.items.length ?? 0) > 0
+  const meIsOrganizerEarly =
+    trip.data && me.data ? isOrganizer(trip.data, me.data.id) : false
+  const pending = usePendingContributions(id, {
+    enabled: Boolean(id) && meIsOrganizerEarly,
+  })
+  const pendingCount = pending.data?.items.length ?? 0
 
   if (trip.isLoading || me.isLoading) return <Splash />
 
@@ -139,10 +148,89 @@ export default function TripDashboard() {
               currentUserId={me.data.id}
               currentMemberId={currentMember?.id}
             />
+            {userIsOrganizer ? (
+              <OrganizerActionsCard
+                tripId={trip.data.id}
+                pendingCount={pendingCount}
+              />
+            ) : null}
           </>
         ) : null}
       </ScrollView>
     </SafeAreaView>
+  )
+}
+
+function OrganizerActionsCard({
+  tripId,
+  pendingCount,
+}: {
+  tripId: string
+  pendingCount: number
+}) {
+  const { t } = useTranslation()
+  const router = useRouter()
+  return (
+    <Card className="gap-3">
+      <Text variant="title">{t('trips.dashboard.organizer.title')}</Text>
+
+      <Pressable
+        onPress={() => router.push(`/trips/${tripId}/organizer/pending`)}
+        accessibilityRole="button"
+        accessibilityLabel={t('trips.dashboard.organizer.approve')}
+        className="flex-row items-center justify-between gap-2 py-2"
+      >
+        <View className="flex-1 flex-row items-center gap-2">
+          <Icon name="rule" size={20} color={colors.primary} />
+          <Text variant="body-em">
+            {t('trips.dashboard.organizer.approve')}
+          </Text>
+        </View>
+        {pendingCount > 0 ? (
+          <Badge tone="primary" label={String(pendingCount)} />
+        ) : (
+          <Icon
+            name="chevron-right"
+            size={20}
+            color={colors.secondary}
+          />
+        )}
+      </Pressable>
+
+      <Divider />
+
+      <Pressable
+        onPress={() => router.push(`/trips/${tripId}/organizer/contributions`)}
+        accessibilityRole="button"
+        accessibilityLabel={t('trips.dashboard.organizer.allContribs')}
+        className="flex-row items-center justify-between gap-2 py-2"
+      >
+        <View className="flex-1 flex-row items-center gap-2">
+          <Icon name="receipt-long" size={20} color={colors.primary} />
+          <Text variant="body-em">
+            {t('trips.dashboard.organizer.allContribs')}
+          </Text>
+        </View>
+        <Icon name="chevron-right" size={20} color={colors.secondary} />
+      </Pressable>
+
+      <Divider />
+
+      <Pressable
+        onPress={() => router.push(`/trips/${tripId}/organizer/log`)}
+        accessibilityRole="button"
+        accessibilityLabel={t('trips.dashboard.organizer.logManual')}
+        className="flex-row items-center justify-between gap-2 py-2"
+      >
+        <View className="flex-1 flex-row items-center gap-2">
+          <Icon name="payments" size={20} color={colors.primary} />
+          <Text variant="body-em">
+            {t('trips.dashboard.organizer.logManual')}
+          </Text>
+        </View>
+        <Icon name="chevron-right" size={20} color={colors.secondary} />
+      </Pressable>
+    </Card>
   )
 }
 

@@ -5,6 +5,7 @@ import { Avatar, Badge, Icon, Text } from '@/components/atoms'
 import type { BadgeTone } from '@/components/atoms'
 import { colors } from '@/theme/colors'
 import { cn } from '@/lib/cn'
+import { resolveMemberName } from '@/lib/trips/helpers'
 import type { MemberCuotaStatus, TripMember } from '@/lib/api/queries'
 
 export type MemberStatusRowProps = {
@@ -38,16 +39,6 @@ const STATE_META: Record<CuotaState, StateMeta> = {
   pending: { i18nKey: 'trips.member.state.pending', tone: 'subtle' },
 }
 
-function nameFromMember(member: TripMember): string {
-  return (
-    member.user?.displayName?.trim() ||
-    member.invitedName?.trim() ||
-    member.invitedEmail?.trim() ||
-    member.invitedPhone?.trim() ||
-    ''
-  )
-}
-
 export function MemberStatusRow({
   member,
   status,
@@ -56,7 +47,7 @@ export function MemberStatusRow({
 }: MemberStatusRowProps) {
   const { t } = useTranslation()
   const isInvited = member.status === 'invited'
-  const baseName = nameFromMember(member)
+  const baseName = resolveMemberName(member)
   const display = isCurrentUser
     ? t('trips.dashboard.members.youPrefix', { name: baseName })
     : baseName
