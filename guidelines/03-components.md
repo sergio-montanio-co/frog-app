@@ -50,7 +50,7 @@ Marcados como "necesarios desde sesión X" para no inflar el scope:
 | TogglePill   | 6      | creado   |
 | EmptyState   | 6      | creado   |
 
-Molecules creadas: `TripCard` (sesión 2), `WizardStep` · `MemberInputRow` · `CostBreakdownRow` (sesión 3), `Countdown` · `UpcomingInstallmentBanner` · `MemberStatusRow` · `PlanSummaryCard` (sesión 4), `BankAccountInfo` · `ContributionHistoryItem` (sesión 5), `RejectDialog` · `MemberPickerSheet` · `PendingContributionCard` · `FilterBar` (sesión 6).
+Molecules creadas: `TripCard` (sesión 2), `WizardStep` · `MemberInputRow` · `CostBreakdownRow` (sesión 3), `Countdown` · `UpcomingInstallmentBanner` · `MemberStatusRow` · `PlanSummaryCard` (sesión 4), `BankAccountInfo` · `ContributionHistoryItem` (sesión 5), `RejectDialog` · `MemberPickerSheet` · `PendingContributionCard` · `FilterBar` (sesión 6), `InvitationPreviewCard` · `InvitedMemberRow` (sesión 7), `NotificationItem` · `PushPermissionPrompt` (sesión 8).
 
 ## Convenciones de implementación
 

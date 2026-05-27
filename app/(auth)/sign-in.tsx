@@ -10,6 +10,10 @@ import { z } from 'zod'
 
 import { Text, Button, Input } from '@/components/atoms'
 import { firstClerkErrorCode } from '@/lib/clerk/errors'
+import {
+  clearPendingInvitation,
+  getPendingInvitation,
+} from '@/lib/invitations/pending'
 
 type Stage = 'email' | 'code'
 
@@ -83,7 +87,16 @@ export default function SignInScreen() {
       })
       if (result.status === 'complete') {
         await setActive({ session: result.createdSessionId })
-        router.replace('/(app)/(tabs)')
+        const pendingToken = await getPendingInvitation()
+        if (pendingToken) {
+          await clearPendingInvitation()
+          router.replace({
+            pathname: '/join/[token]',
+            params: { token: pendingToken },
+          })
+        } else {
+          router.replace('/(app)/(tabs)')
+        }
       } else {
         setSubmitError(t('auth.errors.genericVerify'))
       }

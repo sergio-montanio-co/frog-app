@@ -137,6 +137,25 @@ export const en: TranslationSchema = {
         logManual: 'Log manual payment',
       },
     },
+    invitedMembers: {
+      title: 'Pending invitees',
+      subtitle: 'Share the link with each person. Each link expires in 7 days.',
+      pending: 'Pending',
+      expired: 'Expired',
+      linkLabel: 'Invitation link',
+      copyLink: 'Copy link',
+      share: 'Share',
+      resend: 'Resend',
+      regenerate: 'Regenerate link',
+      resendError: "Couldn't resend the invitation. Try again.",
+      shareTemplate:
+        "You're invited to {{tripName}}. Open this link to join: {{url}}",
+      resendConfirm: {
+        title: 'Resend invitation',
+        body: "We'll generate a new link and the old one will stop working. Make sure to share the new link.",
+        confirm: 'Resend',
+      },
+    },
     organizer: {
       pending: {
         headerTitle: 'Approve payments',
@@ -457,9 +476,43 @@ export const en: TranslationSchema = {
       },
     },
   },
-  alerts: {
+  notifications: {
     title: 'Alerts',
-    empty: 'No alerts for now.',
+    markAllRead: 'Mark all as read',
+    empty: {
+      title: 'No notifications yet.',
+      body: 'Alerts will show up here when you get them.',
+    },
+    fallback: {
+      title: 'Notification',
+    },
+    section: {
+      today: 'Today',
+      yesterday: 'Yesterday',
+      thisWeek: 'This week',
+      older: 'Older',
+    },
+    prompt: {
+      title: 'Turn on notifications',
+      body: "We'll ping you when someone reports a payment or your installment is due.",
+      enable: 'Turn on',
+      notNow: 'Not now',
+    },
+    relativeTime: {
+      justNow: 'Just now',
+      minutesAgo: {
+        one: '{{count}} minute ago',
+        other: '{{count}} minutes ago',
+      },
+      hoursAgo: {
+        one: '{{count}} hour ago',
+        other: '{{count}} hours ago',
+      },
+      daysAgo: {
+        one: '{{count}} day ago',
+        other: '{{count}} days ago',
+      },
+    },
   },
   profile: {
     title: 'Profile',
@@ -479,6 +532,40 @@ export const en: TranslationSchema = {
       displayNameTooLong: 'Max 64 characters.',
       save: 'Save changes',
       genericError: "Couldn't save your changes. Try again.",
+    },
+  },
+  invitations: {
+    join: {
+      title: "You're invited",
+      loading: 'Loading invitation…',
+      accept: 'Accept invitation',
+      continueToAccept: 'Continue to accept',
+      noAccount: "Don't have an account?",
+      goToSignUp: 'Create account',
+      goToTrip: 'Go to trip',
+      alreadyAcceptedByOther:
+        'This invitation was already accepted from another account.',
+      expiredHint:
+        'This link expired. Ask the organizer to send you a new one.',
+      acceptError: "Couldn't accept the invitation. Try again.",
+      alreadyMember: "You're already part of this trip.",
+      notFound: {
+        title: 'Invitation not found',
+        body: 'This link is no longer valid. Ask the organizer for a new one.',
+      },
+      error: {
+        title: "Couldn't load the invitation.",
+      },
+    },
+    preview: {
+      invitedBy: '{{name}} invited you',
+      invitedByGeneric: "You've been invited to this trip",
+      invitedAs: 'As {{name}}',
+      costPerPerson: 'Cost per person',
+      deadline: 'Deadline',
+      members: 'Current members',
+      acceptedBadge: 'Accepted',
+      expiredBadge: 'Expired',
     },
   },
   join: {

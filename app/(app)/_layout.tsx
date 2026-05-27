@@ -5,11 +5,15 @@ import { useTranslation } from 'react-i18next'
 
 import { Splash, Text, Button } from '@/components/atoms'
 import { useMe } from '@/lib/api/queries'
+import { useSyncPushToken } from '@/lib/push/sync'
+import { useHandlePushTaps } from '@/lib/push/listeners'
 
 export default function AppLayout() {
   const { t } = useTranslation()
   const { isLoaded, isSignedIn } = useAuth()
   const me = useMe()
+  useSyncPushToken()
+  useHandlePushTaps()
 
   if (!isLoaded) return <Splash />
   if (!isSignedIn) return <Redirect href="/(auth)/sign-in" />

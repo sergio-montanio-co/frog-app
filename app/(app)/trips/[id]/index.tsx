@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useEffect, useMemo } from 'react'
 import { Pressable, ScrollView, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useLocalSearchParams, useRouter } from 'expo-router'
@@ -17,6 +17,7 @@ import {
 } from '@/components/atoms'
 import {
   Countdown,
+  InvitedMemberRow,
   MemberStatusRow,
   PlanSummaryCard,
   UpcomingInstallmentBanner,
@@ -24,6 +25,7 @@ import {
 import { colors } from '@/theme/colors'
 import { formatMxn } from '@/lib/money'
 import {
+  useMarkAllNotificationsRead,
   useMe,
   useMyContributions,
   usePendingContributions,
@@ -47,6 +49,14 @@ export default function TripDashboard() {
   const { t } = useTranslation()
   const me = useMe()
   const trip = useTrip(id)
+  const markAllRead = useMarkAllNotificationsRead()
+
+  const tripId = trip.data?.id
+  const markAllReadMutate = markAllRead.mutate
+  useEffect(() => {
+    if (!tripId) return
+    markAllReadMutate(tripId)
+  }, [tripId, markAllReadMutate])
 
   const activePlan = trip.data ? findActivePurchasePlan(trip.data) : null
   const schedules = useTripSchedules(id, activePlan?.id)
@@ -148,6 +158,13 @@ export default function TripDashboard() {
               currentUserId={me.data.id}
               currentMemberId={currentMember?.id}
             />
+            {userIsOrganizer ? (
+              <PendingInvitesSection
+                tripId={trip.data.id}
+                tripName={trip.data.name}
+                members={trip.data.members}
+              />
+            ) : null}
             {userIsOrganizer ? (
               <OrganizerActionsCard
                 tripId={trip.data.id}
@@ -366,6 +383,53 @@ function PlanEmptyStateMember() {
           {t('trips.dashboard.planEmpty.memberBody')}
         </Text>
       </View>
+    </Card>
+  )
+}
+
+function PendingInvitesSection({
+  tripId,
+  tripName,
+  members,
+}: {
+  tripId: string
+  tripName: string
+  members: TripMember[]
+}) {
+  const { t } = useTranslation()
+  const pending = useMemo(
+    () =>
+      members.filter(
+        (m) =>
+          m.status === 'invited' &&
+          m.invitation != null &&
+          !m.invitation.isAccepted,
+      ),
+    [members],
+  )
+
+  if (pending.length === 0) return null
+
+  return (
+    <Card className="gap-3">
+      <View className="flex-row items-center gap-2">
+        <Icon name="mail-outline" size={20} color={colors.primary} />
+        <Text variant="title">{t('trips.invitedMembers.title')}</Text>
+      </View>
+      <Text variant="caption" tone="secondary">
+        {t('trips.invitedMembers.subtitle')}
+      </Text>
+      {pending.map((m, idx) => (
+        <View key={m.id} className="gap-3">
+          {idx > 0 ? <Divider /> : null}
+          <InvitedMemberRow
+            member={m}
+            invitation={m.invitation!}
+            tripId={tripId}
+            tripName={tripName}
+          />
+        </View>
+      ))}
     </Card>
   )
 }

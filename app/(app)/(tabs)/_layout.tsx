@@ -2,9 +2,12 @@ import { Tabs } from 'expo-router'
 import { useTranslation } from 'react-i18next'
 import { MaterialIcons } from '@expo/vector-icons'
 import { colors } from '@/theme/colors'
+import { useUnreadNotificationsCount } from '@/lib/api/queries'
 
 export default function TabsLayout() {
   const { t } = useTranslation()
+  const unread = useUnreadNotificationsCount()
+  const unreadCount = unread.data ?? 0
   return (
     <Tabs
       screenOptions={{
@@ -38,6 +41,11 @@ export default function TabsLayout() {
           tabBarIcon: ({ color, size }) => (
             <MaterialIcons name="notifications" color={color} size={size} />
           ),
+          tabBarBadge: unreadCount > 0 ? unreadCount : undefined,
+          tabBarBadgeStyle: {
+            backgroundColor: colors.primary,
+            color: colors.background,
+          },
         }}
       />
       <Tabs.Screen

@@ -1,6 +1,12 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useMemo } from 'react'
+import {
+  useInfiniteQuery,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from '@tanstack/react-query'
 
-import { useApiClient, ApiError } from './client'
+import { createPublicClient, useApiClient, ApiError } from './client'
 import type { components } from './schema.gen'
 
 export type UserDto = components['schemas']['UserDto']
@@ -29,6 +35,15 @@ export type ContributionListResponse =
 export type RejectContributionBody =
   components['schemas']['RejectContributionDto']
 export type ResponsibleAccount = components['schemas']['ResponsibleAccountDto']
+export type InvitationDto = components['schemas']['InvitationDto']
+export type InvitationPreviewDto = components['schemas']['InvitationPreviewDto']
+export type InvitationPreviewTripDto =
+  components['schemas']['InvitationPreviewTripDto']
+export type ResendInvitationResponseDto =
+  components['schemas']['ResendInvitationResponseDto']
+export type NotificationDto = components['schemas']['NotificationDto']
+export type NotificationListResponse =
+  components['schemas']['NotificationListResponse']
 
 export type ContributionStatusFilter = 'reported' | 'confirmed' | 'failed'
 
@@ -59,9 +74,10 @@ function unwrap<T>(result: { data?: T; error?: unknown; response: Response }): T
   return result.data
 }
 
-export function useMe() {
+export function useMe(opts?: { enabled?: boolean }) {
   const client = useApiClient()
   return useQuery({
+    enabled: opts?.enabled ?? true,
     queryKey: ['me'] as const,
     queryFn: () => client.GET('/me').then(unwrap),
   })
@@ -338,6 +354,122 @@ export function useCreateSavingsPlan(tripId: string) {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['trip', tripId] })
       qc.invalidateQueries({ queryKey: ['trips'] })
+    },
+  })
+}
+
+export function useInvitationPreview(token: string | undefined) {
+  const publicClient = useMemo(() => createPublicClient(), [])
+  return useQuery({
+    enabled: Boolean(token),
+    retry: false,
+    queryKey: ['invitation', token] as const,
+    queryFn: () =>
+      publicClient
+        .GET('/invitations/{token}', {
+          params: { path: { token: token as string } },
+        })
+        .then(unwrap),
+  })
+}
+
+export function useAcceptInvitation() {
+  const client = useApiClient()
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (token: string) =>
+      client
+        .POST('/invitations/{token}/accept', {
+          params: { path: { token } },
+        })
+        .then(unwrap),
+    onSuccess: (trip, token) => {
+      qc.setQueryData(['trip', trip.id], trip)
+      qc.invalidateQueries({ queryKey: ['trips'] })
+      qc.invalidateQueries({ queryKey: ['invitation', token] })
+    },
+  })
+}
+
+export function useNotifications() {
+  const client = useApiClient()
+  return useInfiniteQuery({
+    queryKey: ['me', 'notifications'] as const,
+    initialPageParam: undefined as string | undefined,
+    queryFn: ({ pageParam }) =>
+      client
+        .GET('/me/notifications', {
+          params: {
+            query: { channel: 'push', limit: 30, cursor: pageParam },
+          },
+        })
+        .then(unwrap),
+    getNextPageParam: (last: NotificationListResponse) =>
+      last.nextCursor ?? undefined,
+  })
+}
+
+export function useUnreadNotificationsCount() {
+  const client = useApiClient()
+  return useQuery({
+    queryKey: ['me', 'notifications', 'unread-count'] as const,
+    queryFn: () =>
+      client.GET('/me/notifications/unread-count').then(unwrap),
+    refetchOnWindowFocus: true,
+    select: (data) => data.unread,
+  })
+}
+
+export function useMarkNotificationRead() {
+  const client = useApiClient()
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (id: string) =>
+      client
+        .POST('/me/notifications/{id}/mark-read', {
+          params: { path: { id } },
+        })
+        .then(unwrap),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['me', 'notifications'] })
+      qc.invalidateQueries({
+        queryKey: ['me', 'notifications', 'unread-count'],
+      })
+    },
+  })
+}
+
+export function useMarkAllNotificationsRead() {
+  const client = useApiClient()
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (tripId?: string) =>
+      client
+        .POST('/me/notifications/mark-all-read', {
+          params: { query: { tripId } },
+        })
+        .then(unwrap),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['me', 'notifications'] })
+      qc.invalidateQueries({
+        queryKey: ['me', 'notifications', 'unread-count'],
+      })
+    },
+  })
+}
+
+export function useResendInvitation(tripId: string) {
+  const client = useApiClient()
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (invId: string) =>
+      client
+        .POST('/trips/{tripId}/invitations/{invId}/resend', {
+          params: { path: { tripId, invId } },
+        })
+        .then(unwrap),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['trip', tripId] })
     },
   })
 }

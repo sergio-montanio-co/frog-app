@@ -139,6 +139,26 @@ const esStrict = {
         logManual: 'Registrar pago manual',
       },
     },
+    invitedMembers: {
+      title: 'Invitados pendientes',
+      subtitle:
+        'Comparte el link con cada persona. Cada link expira en 7 días.',
+      pending: 'Pendiente',
+      expired: 'Expirada',
+      linkLabel: 'Link de invitación',
+      copyLink: 'Copiar link',
+      share: 'Compartir',
+      resend: 'Reenviar',
+      regenerate: 'Regenerar link',
+      resendError: 'No pudimos reenviar la invitación. Intenta de nuevo.',
+      shareTemplate:
+        'Estás invitado a {{tripName}}. Abre este link para unirte: {{url}}',
+      resendConfirm: {
+        title: 'Reenviar invitación',
+        body: 'Generaremos un link nuevo y el anterior dejará de funcionar. Asegúrate de compartir el nuevo con la persona.',
+        confirm: 'Reenviar',
+      },
+    },
     organizer: {
       pending: {
         headerTitle: 'Aprobar pagos',
@@ -464,9 +484,43 @@ const esStrict = {
       },
     },
   },
-  alerts: {
+  notifications: {
     title: 'Alertas',
-    empty: 'Sin alertas por ahora.',
+    markAllRead: 'Marcar todo como leído',
+    empty: {
+      title: 'No tienes notificaciones.',
+      body: 'Cuando recibas alertas aparecerán aquí.',
+    },
+    fallback: {
+      title: 'Notificación',
+    },
+    section: {
+      today: 'Hoy',
+      yesterday: 'Ayer',
+      thisWeek: 'Esta semana',
+      older: 'Anteriores',
+    },
+    prompt: {
+      title: 'Activa las notificaciones',
+      body: 'Te avisamos cuando alguien reporte un pago o cuando tu cuota esté próxima.',
+      enable: 'Activar',
+      notNow: 'Ahora no',
+    },
+    relativeTime: {
+      justNow: 'Hace un momento',
+      minutesAgo: {
+        one: 'Hace {{count}} minuto',
+        other: 'Hace {{count}} minutos',
+      },
+      hoursAgo: {
+        one: 'Hace {{count}} hora',
+        other: 'Hace {{count}} horas',
+      },
+      daysAgo: {
+        one: 'Hace {{count}} día',
+        other: 'Hace {{count}} días',
+      },
+    },
   },
   profile: {
     title: 'Perfil',
@@ -486,6 +540,39 @@ const esStrict = {
       displayNameTooLong: 'Máximo 64 caracteres.',
       save: 'Guardar cambios',
       genericError: 'No pudimos guardar los cambios. Intenta de nuevo.',
+    },
+  },
+  invitations: {
+    join: {
+      title: 'Estás invitado',
+      loading: 'Cargando invitación…',
+      accept: 'Aceptar invitación',
+      continueToAccept: 'Continuar para aceptar',
+      noAccount: '¿No tienes cuenta?',
+      goToSignUp: 'Crear cuenta',
+      goToTrip: 'Ir al viaje',
+      alreadyAcceptedByOther:
+        'Esta invitación ya fue aceptada desde otra cuenta.',
+      expiredHint: 'Este link expiró. Pídele uno nuevo al organizador.',
+      acceptError: 'No pudimos aceptar la invitación. Intenta de nuevo.',
+      alreadyMember: 'Ya formas parte de este viaje.',
+      notFound: {
+        title: 'Invitación no encontrada',
+        body: 'Este link ya no es válido. Pídele al organizador uno nuevo.',
+      },
+      error: {
+        title: 'No pudimos cargar la invitación.',
+      },
+    },
+    preview: {
+      invitedBy: 'Te invitó {{name}}',
+      invitedByGeneric: 'Te invitaron a este viaje',
+      invitedAs: 'Como {{name}}',
+      costPerPerson: 'Costo por persona',
+      deadline: 'Fecha límite',
+      members: 'Miembros actuales',
+      acceptedBadge: 'Aceptada',
+      expiredBadge: 'Expirada',
     },
   },
   join: {

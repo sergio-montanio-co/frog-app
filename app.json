@@ -53,6 +53,13 @@
       "expo-localization",
       "expo-notifications",
       "@react-native-community/datetimepicker"
-    ]
+    ],
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "c1630e12-5fa8-480c-8adb-bf8607450e8f"
+      }
+    },
+    "owner": "sergio-montanio-co"
   }
 }

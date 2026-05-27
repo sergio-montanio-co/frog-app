@@ -1,5 +1,6 @@
 import '../global.css'
 import '@/i18n'
+import '@/lib/push/setup'
 
 import { useEffect } from 'react'
 import { ClerkProvider, ClerkLoaded } from '@clerk/expo'

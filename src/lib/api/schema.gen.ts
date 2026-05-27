@@ -545,6 +545,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/.well-known/apple-app-site-association": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Apple App Site Association — habilita universal links HTTPS hacia la app iOS
+         * @description Endpoint público fetcheado por el crawler de Apple. Debe responder JSON sin extensión y sin auth.
+         */
+        get: operations["WellKnownController_getAasa"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -767,6 +787,8 @@ export interface components {
             avatarUrl: string | null;
         };
         InvitationDto: {
+            /** Format: uuid */
+            id: string;
             token: string;
             /** Format: date-time */
             expiresAt: string;
@@ -1218,6 +1240,31 @@ export interface components {
              * @example 2
              */
             daysUntilDue: number;
+        };
+        AasaResponseDto: {
+            /**
+             * @description Apple App Site Association payload for iOS universal links
+             * @example {
+             *       "applinks": {
+             *         "details": [
+             *           {
+             *             "appIDs": [
+             *               "7X8SMM7XQ4.com.montanio.frg"
+             *             ],
+             *             "components": [
+             *               {
+             *                 "/": "/join/*",
+             *                 "comment": "Trip invitation deep link"
+             *               }
+             *             ]
+             *           }
+             *         ]
+             *       }
+             *     }
+             */
+            applinks: {
+                [key: string]: unknown;
+            };
         };
     };
     responses: never;
@@ -2466,6 +2513,25 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+        };
+    };
+    WellKnownController_getAasa: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AasaResponseDto"];
+                };
             };
         };
     };
