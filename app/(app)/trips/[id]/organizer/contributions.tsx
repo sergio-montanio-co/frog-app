@@ -1,18 +1,19 @@
 import { useMemo, useState } from 'react'
-import { ScrollView, View } from 'react-native'
+import { RefreshControl, ScrollView, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import { useTranslation } from 'react-i18next'
 
 import {
-  Button,
   Divider,
   EmptyState,
+  ErrorState,
   IconButton,
-  Splash,
+  LoadingSkeleton,
   Text,
   TogglePill,
 } from '@/components/atoms'
+import { colors } from '@/theme/colors'
 import {
   ContributionHistoryItem,
   FilterBar,
@@ -81,19 +82,30 @@ export default function OrganizerAllContributionsScreen() {
   )
 
   if (trip.isLoading || me.isLoading || contributions.isLoading) {
-    return <Splash />
+    return (
+      <SafeAreaView className="flex-1 bg-background" edges={['top']}>
+        <Header onBack={() => router.back()} />
+        <View className="flex-1 p-4">
+          <LoadingSkeleton
+            variant="list"
+            lines={3}
+            accessibilityLabel={t('states.loading.label')}
+          />
+        </View>
+      </SafeAreaView>
+    )
   }
 
   if (!trip.data || !me.data) {
     return (
       <SafeAreaView className="flex-1 bg-background" edges={['top']}>
         <Header onBack={() => router.back()} />
-        <View className="flex-1 items-center justify-center gap-4 px-6">
-          <Text variant="title">{t('common.error')}</Text>
-          <Button
-            label={t('common.retry')}
-            variant="secondary"
-            onPress={() => contributions.refetch()}
+        <View className="flex-1 justify-center p-4">
+          <ErrorState
+            title={t('states.error.defaultTitle')}
+            body={t('states.error.defaultBody')}
+            retryLabel={t('common.retry')}
+            onRetry={() => contributions.refetch()}
           />
         </View>
       </SafeAreaView>
@@ -112,6 +124,13 @@ export default function OrganizerAllContributionsScreen() {
         className="flex-1"
         contentContainerStyle={{ padding: 16, paddingBottom: 32, gap: 16 }}
         keyboardShouldPersistTaps="handled"
+        refreshControl={
+          <RefreshControl
+            refreshing={contributions.isRefetching}
+            onRefresh={() => contributions.refetch()}
+            tintColor={colors.primary}
+          />
+        }
       >
         <View className="gap-1">
           <Text variant="display">{t('trips.organizer.all.title')}</Text>
@@ -192,16 +211,12 @@ export default function OrganizerAllContributionsScreen() {
         )}
 
         {contributions.isError ? (
-          <View className="items-center gap-2">
-            <Text variant="body" tone="secondary">
-              {t('common.error')}
-            </Text>
-            <Button
-              label={t('common.retry')}
-              variant="secondary"
-              onPress={() => contributions.refetch()}
-            />
-          </View>
+          <ErrorState
+            title={t('states.error.defaultTitle')}
+            body={t('states.error.defaultBody')}
+            retryLabel={t('common.retry')}
+            onRetry={() => contributions.refetch()}
+          />
         ) : null}
       </ScrollView>
 

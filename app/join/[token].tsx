@@ -5,7 +5,13 @@ import { Link, useLocalSearchParams, useRouter } from 'expo-router'
 import { useAuth } from '@clerk/expo'
 import { useTranslation } from 'react-i18next'
 
-import { Button, EmptyState, Splash, Text } from '@/components/atoms'
+import {
+  Button,
+  EmptyState,
+  ErrorState,
+  Splash,
+  Text,
+} from '@/components/atoms'
 import { InvitationPreviewCard } from '@/components/molecules'
 import { ApiError } from '@/lib/api/client'
 import { parseBackendError } from '@/lib/api/errors'
@@ -71,13 +77,11 @@ export default function JoinScreen() {
     return (
       <SafeAreaView className="flex-1 bg-background">
         <View className="flex-1 justify-center p-4">
-          <EmptyState
-            icon="error-outline"
+          <ErrorState
             title={t('invitations.join.error.title')}
-            cta={{
-              label: t('common.retry'),
-              onPress: () => preview.refetch(),
-            }}
+            body={t('states.error.defaultBody')}
+            retryLabel={t('common.retry')}
+            onRetry={() => preview.refetch()}
           />
         </View>
       </SafeAreaView>

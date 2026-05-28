@@ -20,6 +20,8 @@ export type UpdateTripBody = components['schemas']['UpdateTripDto']
 export type InviteMemberBody = components['schemas']['InviteMemberDto']
 export type ReleaseSavingsPlanBody =
   components['schemas']['ReleaseSavingsPlanDto']
+export type UpdateSavingsPlanBody =
+  components['schemas']['UpdateSavingsPlanDto']
 export type TripMember = components['schemas']['TripMemberDto']
 export type TripSavingsPlan = components['schemas']['TripSavingsPlanListItemDto']
 export type CreateSavingsPlanBody =
@@ -556,6 +558,68 @@ export function useReleaseSavingsPlan(tripId: string) {
         .then(unwrap),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['trip', tripId] })
+      qc.invalidateQueries({ queryKey: ['trips'] })
+    },
+  })
+}
+
+export function useUpdateSavingsPlan(tripId: string) {
+  const client = useApiClient()
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({
+      planId,
+      status,
+    }: {
+      planId: string
+      status: 'active' | 'paused'
+    }) =>
+      client
+        .PATCH('/trips/{tripId}/savings-plans/{planId}', {
+          params: { path: { tripId, planId } },
+          body: { status },
+        })
+        .then(unwrap),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['trip', tripId] })
+      qc.invalidateQueries({ queryKey: ['trips'] })
+    },
+  })
+}
+
+export function useCancelSavingsPlan(tripId: string) {
+  const client = useApiClient()
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (planId: string) =>
+      client
+        .POST('/trips/{tripId}/savings-plans/{planId}/cancel', {
+          params: { path: { tripId, planId } },
+        })
+        .then(unwrap),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['trip', tripId] })
+      qc.invalidateQueries({ queryKey: ['trips'] })
+    },
+  })
+}
+
+export function useDeleteTrip() {
+  const client = useApiClient()
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error, response } = await client.DELETE('/trips/{id}', {
+        params: { path: { id } },
+      })
+      if (error != null) throw new ApiError(response.status, error)
+      if (response.status !== 204) {
+        throw new ApiError(response.status, null)
+      }
+      return id
+    },
+    onSuccess: (id) => {
+      qc.removeQueries({ queryKey: ['trip', id] })
       qc.invalidateQueries({ queryKey: ['trips'] })
     },
   })

@@ -49,8 +49,10 @@ Marcados como "necesarios desde sesión X" para no inflar el scope:
 | Checkbox     | 5      | pendiente |
 | TogglePill   | 6      | creado   |
 | EmptyState   | 6      | creado   |
+| LoadingSkeleton | 10  | creado   |
+| ErrorState   | 10     | creado   |
 
-Molecules creadas: `TripCard` (sesión 2), `WizardStep` · `MemberInputRow` · `CostBreakdownRow` (sesión 3), `Countdown` · `UpcomingInstallmentBanner` · `MemberStatusRow` · `PlanSummaryCard` (sesión 4), `BankAccountInfo` · `ContributionHistoryItem` (sesión 5), `RejectDialog` · `MemberPickerSheet` · `PendingContributionCard` · `FilterBar` (sesión 6), `InvitationPreviewCard` · `InvitedMemberRow` (sesión 7), `NotificationItem` · `PushPermissionPrompt` (sesión 8).
+Molecules creadas: `TripCard` (sesión 2), `WizardStep` · `MemberInputRow` · `CostBreakdownRow` (sesión 3), `Countdown` · `UpcomingInstallmentBanner` · `MemberStatusRow` · `PlanSummaryCard` (sesión 4), `BankAccountInfo` · `ContributionHistoryItem` (sesión 5), `RejectDialog` · `MemberPickerSheet` · `PendingContributionCard` · `FilterBar` (sesión 6), `InvitationPreviewCard` · `InvitedMemberRow` (sesión 7), `NotificationItem` · `PushPermissionPrompt` (sesión 8), `ReleaseDialog` · `WarningsListDialog` · `InviteLateDialog` (sesión 9), `CancelPlanDialog` · `DeleteTripDialog` (sesión 10).
 
 ## Convenciones de implementación
 

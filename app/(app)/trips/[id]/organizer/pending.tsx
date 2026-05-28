@@ -5,12 +5,13 @@ import { useLocalSearchParams, useRouter } from 'expo-router'
 import { useTranslation } from 'react-i18next'
 
 import {
-  Button,
   EmptyState,
+  ErrorState,
   IconButton,
-  Splash,
+  LoadingSkeleton,
   Text,
 } from '@/components/atoms'
+import { colors } from '@/theme/colors'
 import {
   PendingContributionCard,
   RejectDialog,
@@ -55,18 +56,31 @@ export default function OrganizerPendingScreen() {
     return map
   }, [schedules.data])
 
-  if (trip.isLoading || pending.isLoading || me.isLoading) return <Splash />
+  if (trip.isLoading || pending.isLoading || me.isLoading) {
+    return (
+      <SafeAreaView className="flex-1 bg-background" edges={['top']}>
+        <Header onBack={() => router.back()} />
+        <View className="flex-1 p-4">
+          <LoadingSkeleton
+            variant="list"
+            lines={3}
+            accessibilityLabel={t('states.loading.label')}
+          />
+        </View>
+      </SafeAreaView>
+    )
+  }
 
   if (!trip.data || !me.data) {
     return (
       <SafeAreaView className="flex-1 bg-background" edges={['top']}>
         <Header onBack={() => router.back()} />
-        <View className="flex-1 items-center justify-center gap-4 px-6">
-          <Text variant="title">{t('common.error')}</Text>
-          <Button
-            label={t('common.retry')}
-            variant="secondary"
-            onPress={() => {
+        <View className="flex-1 justify-center p-4">
+          <ErrorState
+            title={t('states.error.defaultTitle')}
+            body={t('states.error.defaultBody')}
+            retryLabel={t('common.retry')}
+            onRetry={() => {
               trip.refetch()
               pending.refetch()
             }}
@@ -91,6 +105,7 @@ export default function OrganizerPendingScreen() {
           <RefreshControl
             refreshing={pending.isRefetching}
             onRefresh={() => pending.refetch()}
+            tintColor={colors.primary}
           />
         }
       >

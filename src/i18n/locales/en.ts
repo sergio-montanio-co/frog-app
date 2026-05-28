@@ -552,6 +552,34 @@ export const en: TranslationSchema = {
         title: 'Trip purchased',
         body: 'The organizer released the funds. There are no more payments to report for this plan.',
       },
+      pausePlan: {
+        cta: 'Pause savings',
+        success: 'Plan paused',
+        genericError: "Couldn't pause the plan. Try again.",
+      },
+      resumePlan: {
+        cta: 'Resume savings',
+        success: 'Plan resumed',
+        genericError: "Couldn't resume the plan. Try again.",
+      },
+      pausedBadge: 'Paused',
+      cancelPlan: {
+        cta: 'Cancel plan',
+        title: 'Cancel savings plan',
+        body: "You're going to cancel the plan. Confirmed payments stay, but the group will stop being able to contribute. This action can't be undone.",
+        confirm: 'Cancel plan',
+        cancelledTitle: 'Plan cancelled',
+        cancelledBody: 'The organizer cancelled the plan. Confirmed payments stay but new ones are not accepted.',
+      },
+      deleteTrip: {
+        cta: 'Delete trip',
+        title: 'Delete trip',
+        body: "You're going to delete '{{tripName}}'. This action can't be undone.",
+        confirm: 'Delete',
+      },
+      menu: {
+        open: 'More options',
+      },
     },
   },
   notifications: {
@@ -648,6 +676,16 @@ export const en: TranslationSchema = {
   },
   join: {
     received: 'Invitation received: {{token}}',
+  },
+  states: {
+    loading: {
+      label: 'Loading',
+    },
+    error: {
+      defaultTitle: "Couldn't load the information.",
+      defaultBody: 'Check your connection and try again.',
+      retry: 'Retry',
+    },
   },
   notFound: {
     title: 'Screen not found',

@@ -1,7 +1,7 @@
 import { View } from 'react-native'
 import { useTranslation } from 'react-i18next'
 
-import { Card, Divider, Icon, Text } from '@/components/atoms'
+import { Badge, Card, Divider, Icon, Text } from '@/components/atoms'
 import { colors } from '@/theme/colors'
 import { formatMxn } from '@/lib/money'
 import { cn } from '@/lib/cn'
@@ -30,7 +30,12 @@ export function PlanSummaryCard({ plan, className }: PlanSummaryCardProps) {
     <Card className={cn('gap-3', className)}>
       <View className="flex-row items-center gap-2">
         <Icon name="savings" size={20} color={colors.primary} />
-        <Text variant="title">{t('trips.dashboard.planSummary.title')}</Text>
+        <Text variant="title" className="flex-1">
+          {t('trips.dashboard.planSummary.title')}
+        </Text>
+        {plan.status === 'paused' ? (
+          <Badge tone="subtle" label={t('trips.admin.pausedBadge')} />
+        ) : null}
       </View>
       <View className="gap-1">
         <Text variant="body">

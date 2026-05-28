@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Pressable, ScrollView, View } from 'react-native'
+import { Modal, Pressable, RefreshControl, ScrollView, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import { useTranslation } from 'react-i18next'
@@ -10,14 +10,17 @@ import {
   Card,
   ConfirmDialog,
   Divider,
+  ErrorState,
   Icon,
   IconButton,
+  LoadingSkeleton,
   ProgressBar,
-  Splash,
   Text,
 } from '@/components/atoms'
 import {
+  CancelPlanDialog,
   Countdown,
+  DeleteTripDialog,
   InvitedMemberRow,
   InviteLateDialog,
   MemberStatusRow,
@@ -38,12 +41,19 @@ import {
   useTrip,
   useTripSchedules,
   useUpcomingInstallment,
+  useUpdateSavingsPlan,
   type PaymentSchedule,
   type TripDto,
   type TripMember,
 } from '@/lib/api/queries'
 import {
+  canCancelPlan,
+  canDeleteTrip,
+  canPausePlan,
+  canResumePlan,
+  canReleasePlan,
   findActivePurchasePlan,
+  findCancelledPurchasePlan,
   getMemberCurrentState,
   isOrganizer,
   resolveMemberName,
@@ -67,16 +77,11 @@ export default function TripDashboard() {
   }, [tripId, markAllReadMutate])
 
   const activePlan = trip.data ? findActivePurchasePlan(trip.data) : null
-  const releasablePlan = useMemo(() => {
-    if (!trip.data) return null
-    return (
-      trip.data.savingsPlans.find(
-        (p) =>
-          p.type === 'trip_purchase' &&
-          (p.status === 'active' || p.status === 'paused'),
-      ) ?? null
-    )
-  }, [trip.data])
+  const cancelledPlan = trip.data
+    ? findCancelledPurchasePlan(trip.data)
+    : null
+  const releasablePlan = canReleasePlan(activePlan) ? activePlan : null
+  const updatePlan = useUpdateSavingsPlan(id ?? '')
   const schedules = useTripSchedules(id, activePlan?.id)
   const upcoming = useUpcomingInstallment(id)
   const myContribs = useMyContributions(id)
@@ -92,11 +97,31 @@ export default function TripDashboard() {
   const [releaseOpen, setReleaseOpen] = useState(false)
   const [leaveOpen, setLeaveOpen] = useState(false)
   const [inviteOpen, setInviteOpen] = useState(false)
+  const [cancelPlanOpen, setCancelPlanOpen] = useState(false)
+  const [deleteTripOpen, setDeleteTripOpen] = useState(false)
+  const [menuOpen, setMenuOpen] = useState(false)
   const [removeTarget, setRemoveTarget] = useState<TripMember | null>(null)
   const [leaveError, setLeaveError] = useState<string | null>(null)
   const [removeError, setRemoveError] = useState<string | null>(null)
+  const [pauseError, setPauseError] = useState<string | null>(null)
 
-  if (trip.isLoading || me.isLoading) return <Splash />
+  if (trip.isLoading || me.isLoading) {
+    return (
+      <SafeAreaView className="flex-1 bg-background" edges={['top']}>
+        <DashboardTopBar
+          title={t('trips.dashboard.headerFallback')}
+          onBack={() => router.back()}
+        />
+        <View className="flex-1 p-4">
+          <LoadingSkeleton
+            variant="list"
+            lines={3}
+            accessibilityLabel={t('states.loading.label')}
+          />
+        </View>
+      </SafeAreaView>
+    )
+  }
 
   if (trip.isError || me.isError || !trip.data || !me.data) {
     return (
@@ -105,12 +130,12 @@ export default function TripDashboard() {
           title={t('trips.dashboard.headerFallback')}
           onBack={() => router.back()}
         />
-        <View className="flex-1 items-center justify-center gap-4 px-6">
-          <Text variant="title">{t('trips.errorTitle')}</Text>
-          <Button
-            label={t('common.retry')}
-            variant="secondary"
-            onPress={() => trip.refetch()}
+        <View className="flex-1 justify-center p-4">
+          <ErrorState
+            title={t('trips.errorTitle')}
+            body={t('states.error.defaultBody')}
+            retryLabel={t('common.retry')}
+            onRetry={() => trip.refetch()}
           />
         </View>
       </SafeAreaView>
@@ -121,6 +146,11 @@ export default function TripDashboard() {
   const currentMember = trip.data.members.find(
     (m) => m.user?.id === me.data?.id && m.status === 'active',
   )
+  const canDelete = userIsOrganizer && canDeleteTrip(trip.data)
+  const showCancelledBanner =
+    cancelledPlan != null && activePlan == null && !purchaseReady
+  const showPauseControl = userIsOrganizer && canPausePlan(activePlan)
+  const showResumeControl = userIsOrganizer && canResumePlan(activePlan)
 
   async function onConfirmLeave() {
     setLeaveError(null)
@@ -144,6 +174,19 @@ export default function TripDashboard() {
     }
   }
 
+  async function onTogglePause() {
+    if (!activePlan) return
+    setPauseError(null)
+    try {
+      await updatePlan.mutateAsync({
+        planId: activePlan.id,
+        status: activePlan.status === 'active' ? 'paused' : 'active',
+      })
+    } catch (err) {
+      setPauseError(parseBackendError(err))
+    }
+  }
+
   return (
     <SafeAreaView className="flex-1 bg-background" edges={['top']}>
       <DashboardTopBar
@@ -151,17 +194,27 @@ export default function TripDashboard() {
         onBack={() => router.back()}
         rightSlot={
           userIsOrganizer ? (
-            <IconButton
-              name="edit"
-              variant="ghost"
-              accessibilityLabel={t('trips.admin.editTrip.cta')}
-              onPress={() =>
-                router.push({
-                  pathname: '/trips/[id]/edit',
-                  params: { id: trip.data.id },
-                })
-              }
-            />
+            <View className="flex-row items-center">
+              <IconButton
+                name="edit"
+                variant="ghost"
+                accessibilityLabel={t('trips.admin.editTrip.cta')}
+                onPress={() =>
+                  router.push({
+                    pathname: '/trips/[id]/edit',
+                    params: { id: trip.data.id },
+                  })
+                }
+              />
+              {canDelete ? (
+                <IconButton
+                  name="more-vert"
+                  variant="ghost"
+                  accessibilityLabel={t('trips.admin.menu.open')}
+                  onPress={() => setMenuOpen(true)}
+                />
+              ) : null}
+            </View>
           ) : null
         }
       />
@@ -172,12 +225,29 @@ export default function TripDashboard() {
           paddingBottom: 32,
           gap: 16,
         }}
+        refreshControl={
+          <RefreshControl
+            refreshing={trip.isRefetching}
+            onRefresh={() => trip.refetch()}
+            tintColor={colors.primary}
+          />
+        }
       >
         <DashboardHero trip={trip.data} />
 
         {purchaseReady ? <PurchaseReadyBanner /> : null}
 
-        {!activePlan && userIsOrganizer ? (
+        {showCancelledBanner ? <CancelledPlanBanner /> : null}
+
+        {pauseError ? (
+          <Card className="border-primary">
+            <Text variant="caption" tone="primary">
+              {pauseError}
+            </Text>
+          </Card>
+        ) : null}
+
+        {!activePlan && !cancelledPlan && userIsOrganizer ? (
           <PlanEmptyStateOrganizer
             onPress={() =>
               router.push({
@@ -187,7 +257,9 @@ export default function TripDashboard() {
             }
           />
         ) : null}
-        {!activePlan && !userIsOrganizer ? <PlanEmptyStateMember /> : null}
+        {!activePlan && !cancelledPlan && !userIsOrganizer ? (
+          <PlanEmptyStateMember />
+        ) : null}
 
         {activePlan ? (
           <>
@@ -204,11 +276,32 @@ export default function TripDashboard() {
             <PlanSummaryCard plan={activePlan} />
 
             {userIsOrganizer && releasablePlan ? (
-              <Button
-                label={t('trips.admin.release.cta')}
-                variant="primary"
-                onPress={() => setReleaseOpen(true)}
-              />
+              <View className="flex-row items-center gap-2">
+                <Button
+                  label={t('trips.admin.release.cta')}
+                  variant="primary"
+                  className="flex-1"
+                  onPress={() => setReleaseOpen(true)}
+                />
+                {showPauseControl ? (
+                  <IconButton
+                    name="pause"
+                    variant="secondary"
+                    accessibilityLabel={t('trips.admin.pausePlan.cta')}
+                    onPress={onTogglePause}
+                    disabled={updatePlan.isPending}
+                  />
+                ) : null}
+                {showResumeControl ? (
+                  <IconButton
+                    name="play-arrow"
+                    variant="secondary"
+                    accessibilityLabel={t('trips.admin.resumePlan.cta')}
+                    onPress={onTogglePause}
+                    disabled={updatePlan.isPending}
+                  />
+                ) : null}
+              </View>
             ) : null}
 
             {hasHistory ? (
@@ -250,6 +343,8 @@ export default function TripDashboard() {
               <OrganizerActionsCard
                 tripId={trip.data.id}
                 pendingCount={pendingCount}
+                canCancel={canCancelPlan(activePlan)}
+                onCancelPlan={() => setCancelPlanOpen(true)}
               />
             ) : null}
             {!userIsOrganizer ? (
@@ -312,6 +407,59 @@ export default function TripDashboard() {
           setRemoveTarget(null)
         }}
       />
+
+      {userIsOrganizer && activePlan ? (
+        <CancelPlanDialog
+          open={cancelPlanOpen}
+          tripId={trip.data.id}
+          planId={activePlan.id}
+          onClose={() => setCancelPlanOpen(false)}
+        />
+      ) : null}
+
+      <DeleteTripDialog
+        open={deleteTripOpen}
+        tripId={trip.data.id}
+        tripName={trip.data.name}
+        onClose={() => setDeleteTripOpen(false)}
+        onDeleted={() => router.replace('/(app)/(tabs)/')}
+      />
+
+      <Modal
+        visible={menuOpen}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setMenuOpen(false)}
+      >
+        <Pressable
+          onPress={() => setMenuOpen(false)}
+          className="flex-1 bg-foreground/40"
+          accessibilityLabel={t('common.close')}
+        >
+          <View className="absolute right-4 top-16 w-56 gap-1 rounded-card border-hairline border-muted bg-background p-2">
+            {canDelete ? (
+              <Pressable
+                onPress={() => {
+                  setMenuOpen(false)
+                  setDeleteTripOpen(true)
+                }}
+                accessibilityRole="button"
+                accessibilityLabel={t('trips.admin.deleteTrip.cta')}
+                className="flex-row items-center gap-2 px-3 py-3"
+              >
+                <Icon
+                  name="delete-outline"
+                  size={20}
+                  color={colors.secondary}
+                />
+                <Text variant="body-em" tone="secondary">
+                  {t('trips.admin.deleteTrip.cta')}
+                </Text>
+              </Pressable>
+            ) : null}
+          </View>
+        </Pressable>
+      </Modal>
     </SafeAreaView>
   )
 }
@@ -326,6 +474,21 @@ function PurchaseReadyBanner() {
       </View>
       <Text variant="body" tone="secondary">
         {t('trips.admin.purchaseReady.body')}
+      </Text>
+    </Card>
+  )
+}
+
+function CancelledPlanBanner() {
+  const { t } = useTranslation()
+  return (
+    <Card className="gap-2">
+      <View className="flex-row items-center gap-2">
+        <Icon name="block" size={20} color={colors.secondary} />
+        <Text variant="title">{t('trips.admin.cancelPlan.cancelledTitle')}</Text>
+      </View>
+      <Text variant="body" tone="secondary">
+        {t('trips.admin.cancelPlan.cancelledBody')}
       </Text>
     </Card>
   )
@@ -347,9 +510,13 @@ function LeaveTripCard({ onPress }: { onPress: () => void }) {
 function OrganizerActionsCard({
   tripId,
   pendingCount,
+  canCancel,
+  onCancelPlan,
 }: {
   tripId: string
   pendingCount: number
+  canCancel: boolean
+  onCancelPlan: () => void
 }) {
   const { t } = useTranslation()
   const router = useRouter()
@@ -413,6 +580,30 @@ function OrganizerActionsCard({
         </View>
         <Icon name="chevron-right" size={20} color={colors.secondary} />
       </Pressable>
+
+      {canCancel ? (
+        <>
+          <Divider />
+          <Pressable
+            onPress={onCancelPlan}
+            accessibilityRole="button"
+            accessibilityLabel={t('trips.admin.cancelPlan.cta')}
+            className="flex-row items-center justify-between gap-2 py-2"
+          >
+            <View className="flex-1 flex-row items-center gap-2">
+              <Icon name="block" size={20} color={colors.secondary} />
+              <Text variant="body-em" tone="secondary">
+                {t('trips.admin.cancelPlan.cta')}
+              </Text>
+            </View>
+            <Icon
+              name="chevron-right"
+              size={20}
+              color={colors.secondary}
+            />
+          </Pressable>
+        </>
+      ) : null}
     </Card>
   )
 }

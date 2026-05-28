@@ -1,18 +1,19 @@
 import { useMemo, useState } from 'react'
-import { ScrollView, View } from 'react-native'
+import { RefreshControl, ScrollView, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import { useTranslation } from 'react-i18next'
 
 import {
-  Button,
   ConfirmDialog,
   Divider,
   EmptyState,
+  ErrorState,
   IconButton,
-  Splash,
+  LoadingSkeleton,
   Text,
 } from '@/components/atoms'
+import { colors } from '@/theme/colors'
 import { ContributionHistoryItem } from '@/components/molecules'
 import { parseBackendError } from '@/lib/api/errors'
 import {
@@ -108,8 +109,33 @@ export default function ContributionHistoryScreen() {
     [visibleItems, schedules.data],
   )
 
-  if (trip.isLoading || contributions.isLoading || me.isLoading)
-    return <Splash />
+  if (trip.isLoading || contributions.isLoading || me.isLoading) {
+    return (
+      <SafeAreaView className="flex-1 bg-background" edges={['top']}>
+        <View className="flex-row items-center gap-2 px-2 py-2">
+          <IconButton
+            name="arrow-back"
+            variant="ghost"
+            accessibilityLabel={t('common.back')}
+            onPress={() => router.back()}
+          />
+          <View className="flex-1">
+            <Text variant="body-em" numberOfLines={1}>
+              {t('trips.contributions.history.headerTitle')}
+            </Text>
+          </View>
+          <View className="w-11" />
+        </View>
+        <View className="flex-1 p-4">
+          <LoadingSkeleton
+            variant="list"
+            lines={3}
+            accessibilityLabel={t('states.loading.label')}
+          />
+        </View>
+      </SafeAreaView>
+    )
+  }
 
   const tripName = trip.data?.name ?? ''
 
@@ -133,6 +159,13 @@ export default function ContributionHistoryScreen() {
       <ScrollView
         className="flex-1"
         contentContainerStyle={{ padding: 16, paddingBottom: 32, gap: 16 }}
+        refreshControl={
+          <RefreshControl
+            refreshing={contributions.isRefetching}
+            onRefresh={() => contributions.refetch()}
+            tintColor={colors.primary}
+          />
+        }
       >
         <View className="gap-1">
           <Text variant="display">
@@ -204,16 +237,12 @@ export default function ContributionHistoryScreen() {
         ) : null}
 
         {contributions.isError ? (
-          <View className="items-center gap-2">
-            <Text variant="body" tone="secondary">
-              {t('common.error')}
-            </Text>
-            <Button
-              label={t('common.retry')}
-              variant="secondary"
-              onPress={() => contributions.refetch()}
-            />
-          </View>
+          <ErrorState
+            title={t('states.error.defaultTitle')}
+            body={t('states.error.defaultBody')}
+            retryLabel={t('common.retry')}
+            onRetry={() => contributions.refetch()}
+          />
         ) : null}
       </ScrollView>
 

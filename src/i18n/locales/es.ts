@@ -530,7 +530,7 @@ const esStrict = {
       leave: {
         cta: 'Salir del viaje',
         title: '¿Salir de {{tripName}}?',
-        body: 'Vas a salir del viaje. Si has reportado pagos, hablalo con el organizador. Esta acción no se puede deshacer.',
+        body: 'Vas a salir del viaje. Si has reportado pagos, háblalo con el organizador. Esta acción no se puede deshacer.',
         confirm: 'Sí, salir',
         genericError: 'No pudimos sacarte del viaje. Intenta de nuevo.',
       },
@@ -560,6 +560,34 @@ const esStrict = {
       purchaseReady: {
         title: 'Viaje comprado',
         body: 'El organizador liberó los fondos. Ya no hay pagos por reportar para este plan.',
+      },
+      pausePlan: {
+        cta: 'Pausar ahorro',
+        success: 'Plan pausado',
+        genericError: 'No pudimos pausar el plan. Intenta de nuevo.',
+      },
+      resumePlan: {
+        cta: 'Reanudar ahorro',
+        success: 'Plan reanudado',
+        genericError: 'No pudimos reanudar el plan. Intenta de nuevo.',
+      },
+      pausedBadge: 'En pausa',
+      cancelPlan: {
+        cta: 'Cancelar plan',
+        title: 'Cancelar plan de ahorro',
+        body: 'Vas a cancelar el plan. Los pagos confirmados se mantienen, pero el grupo dejará de poder aportar. Esta acción no se puede deshacer.',
+        confirm: 'Cancelar plan',
+        cancelledTitle: 'Plan cancelado',
+        cancelledBody: 'El organizador canceló el plan. Los pagos confirmados se mantienen pero ya no se admiten nuevos.',
+      },
+      deleteTrip: {
+        cta: 'Eliminar viaje',
+        title: 'Eliminar viaje',
+        body: "Vas a eliminar '{{tripName}}'. Esta acción no se puede deshacer.",
+        confirm: 'Eliminar',
+      },
+      menu: {
+        open: 'Más opciones',
       },
     },
   },
@@ -656,6 +684,16 @@ const esStrict = {
   },
   join: {
     received: 'Invitación recibida: {{token}}',
+  },
+  states: {
+    loading: {
+      label: 'Cargando',
+    },
+    error: {
+      defaultTitle: 'No pudimos cargar la información.',
+      defaultBody: 'Revisa tu conexión e intenta de nuevo.',
+      retry: 'Reintentar',
+    },
   },
   notFound: {
     title: 'Pantalla no encontrada',

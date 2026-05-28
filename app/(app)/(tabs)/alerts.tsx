@@ -8,7 +8,13 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useTranslation } from 'react-i18next'
 
-import { Button, EmptyState, Splash, Text } from '@/components/atoms'
+import {
+  Button,
+  EmptyState,
+  ErrorState,
+  LoadingSkeleton,
+  Text,
+} from '@/components/atoms'
 import {
   NotificationItem,
   PushPermissionPrompt,
@@ -79,7 +85,40 @@ export default function AlertsScreen() {
   const unreadCount = unread.data ?? 0
   const showMarkAll = unreadCount > 0
 
-  if (notifications.isLoading) return <Splash />
+  if (notifications.isLoading) {
+    return (
+      <SafeAreaView className="flex-1 bg-background" edges={['top']}>
+        <View className="flex-row items-center justify-between gap-2 px-4 pt-2 pb-3">
+          <Text variant="display">{t('notifications.title')}</Text>
+        </View>
+        <View className="px-4">
+          <LoadingSkeleton
+            variant="list"
+            lines={4}
+            accessibilityLabel={t('states.loading.label')}
+          />
+        </View>
+      </SafeAreaView>
+    )
+  }
+
+  if (notifications.isError) {
+    return (
+      <SafeAreaView className="flex-1 bg-background" edges={['top']}>
+        <View className="flex-row items-center justify-between gap-2 px-4 pt-2 pb-3">
+          <Text variant="display">{t('notifications.title')}</Text>
+        </View>
+        <View className="flex-1 justify-center px-4">
+          <ErrorState
+            title={t('states.error.defaultTitle')}
+            body={t('states.error.defaultBody')}
+            retryLabel={t('common.retry')}
+            onRetry={() => notifications.refetch()}
+          />
+        </View>
+      </SafeAreaView>
+    )
+  }
 
   return (
     <SafeAreaView className="flex-1 bg-background" edges={['top']}>

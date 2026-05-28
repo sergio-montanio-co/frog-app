@@ -1,14 +1,14 @@
 import { useState } from 'react'
-import { FlatList, View } from 'react-native'
+import { FlatList, RefreshControl, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useRouter } from 'expo-router'
 import { useTranslation } from 'react-i18next'
 
 import {
   Button,
-  Card,
   EmptyState,
-  Icon,
+  ErrorState,
+  LoadingSkeleton,
   Text,
   TogglePill,
 } from '@/components/atoms'
@@ -20,7 +20,7 @@ export default function MyTripsScreen() {
   const { t } = useTranslation()
   const router = useRouter()
   const [tab, setTab] = useState<TripsTab>('active')
-  const { data, isLoading, isError, refetch } = useTrips(tab)
+  const { data, isLoading, isError, isRefetching, refetch } = useTrips(tab)
 
   const items = data?.items ?? []
   const showEmpty = !isLoading && !isError && items.length === 0
@@ -45,8 +45,21 @@ export default function MyTripsScreen() {
         </View>
 
         <View className="flex-1">
-          {isLoading && <SkeletonList />}
-          {isError && <ErrorState onRetry={() => refetch()} />}
+          {isLoading && (
+            <LoadingSkeleton
+              variant="list"
+              lines={3}
+              accessibilityLabel={t('states.loading.label')}
+            />
+          )}
+          {isError && (
+            <ErrorState
+              title={t('trips.errorTitle')}
+              body={t('states.error.defaultBody')}
+              retryLabel={t('common.retry')}
+              onRetry={() => refetch()}
+            />
+          )}
           {showEmpty && <TripsEmpty tab={tab} />}
           {showList && (
             <FlatList
@@ -56,6 +69,13 @@ export default function MyTripsScreen() {
               ItemSeparatorComponent={() => <View className="h-3" />}
               contentContainerStyle={{ paddingBottom: 96 }}
               showsVerticalScrollIndicator={false}
+              refreshControl={
+                <RefreshControl
+                  refreshing={isRefetching}
+                  onRefresh={() => refetch()}
+                  tintColor={colors.primary}
+                />
+              }
             />
           )}
         </View>
@@ -68,40 +88,6 @@ export default function MyTripsScreen() {
         />
       </View>
     </SafeAreaView>
-  )
-}
-
-function SkeletonList() {
-  return (
-    <View className="gap-3">
-      <SkeletonCard />
-      <SkeletonCard />
-      <SkeletonCard />
-    </View>
-  )
-}
-
-function SkeletonCard() {
-  return (
-    <Card className="gap-3">
-      <View className="h-5 w-2/3 rounded-full bg-muted/30" />
-      <View className="h-3 w-1/2 rounded-full bg-muted/30" />
-      <View className="h-1.5 w-full rounded-full bg-muted/30" />
-      <View className="h-3 w-2/3 rounded-full bg-muted/30" />
-    </Card>
-  )
-}
-
-function ErrorState({ onRetry }: { onRetry: () => void }) {
-  const { t } = useTranslation()
-  return (
-    <View className="flex-1 items-center justify-center gap-4 px-6">
-      <Icon name="error-outline" size={32} color={colors.secondary} />
-      <Text variant="title" tone="foreground">
-        {t('trips.errorTitle')}
-      </Text>
-      <Button label={t('common.retry')} variant="secondary" onPress={onRetry} />
-    </View>
   )
 }
 

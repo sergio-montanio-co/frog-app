@@ -12,7 +12,9 @@ export function findActivePurchasePlan(
 ): TripSavingsPlan | null {
   return (
     trip.savingsPlans.find(
-      (p) => p.type === 'trip_purchase' && p.status === 'active',
+      (p) =>
+        p.type === 'trip_purchase' &&
+        (p.status === 'active' || p.status === 'paused'),
     ) ?? null
   )
 }
@@ -68,6 +70,45 @@ export function todayIsoStart(): string {
   const d = new Date()
   d.setHours(0, 0, 0, 0)
   return d.toISOString()
+}
+
+export function canReportContribution(plan: TripSavingsPlan | null): boolean {
+  if (!plan) return false
+  return plan.status === 'active' || plan.status === 'paused'
+}
+
+export function canApproveContribution(plan: TripSavingsPlan | null): boolean {
+  return canReportContribution(plan)
+}
+
+export function canPausePlan(plan: TripSavingsPlan | null): boolean {
+  return plan?.status === 'active'
+}
+
+export function canResumePlan(plan: TripSavingsPlan | null): boolean {
+  return plan?.status === 'paused'
+}
+
+export function canReleasePlan(plan: TripSavingsPlan | null): boolean {
+  return plan?.status === 'active' || plan?.status === 'paused'
+}
+
+export function canCancelPlan(plan: TripSavingsPlan | null): boolean {
+  return plan?.status === 'active' || plan?.status === 'paused'
+}
+
+export function canDeleteTrip(trip: TripDto): boolean {
+  return trip.status === 'draft'
+}
+
+export function findCancelledPurchasePlan(
+  trip: TripDto,
+): TripSavingsPlan | null {
+  return (
+    trip.savingsPlans.find(
+      (p) => p.type === 'trip_purchase' && p.status === 'cancelled',
+    ) ?? null
+  )
 }
 
 export function getResponsibleAccount(
