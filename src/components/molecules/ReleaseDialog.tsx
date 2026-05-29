@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Modal, TextInput, View } from 'react-native'
+import { Modal, View } from 'react-native'
 import { useTranslation } from 'react-i18next'
 
 import {
@@ -7,6 +7,7 @@ import {
   Card,
   ConfirmDialog,
   Icon,
+  Input,
   Text,
 } from '@/components/atoms'
 import { colors } from '@/theme/colors'
@@ -21,8 +22,10 @@ export type ReleaseDialogProps = {
   tripName: string
   planId: string
   pendingCount: number
+  viaticosNeedsTripStartDate?: boolean
   onClose: () => void
   onReviewPending?: () => void
+  onEditTrip?: () => void
 }
 
 const NOTES_MAX = 1000
@@ -33,8 +36,10 @@ export function ReleaseDialog({
   tripName,
   planId,
   pendingCount,
+  viaticosNeedsTripStartDate = false,
   onClose,
   onReviewPending,
+  onEditTrip,
 }: ReleaseDialogProps) {
   const { t } = useTranslation()
   const release = useReleaseSavingsPlan(tripId)
@@ -140,11 +145,37 @@ export function ReleaseDialog({
                   {t('trips.admin.release.dialog.body')}
                 </Text>
 
+                {viaticosNeedsTripStartDate ? (
+                  <Card className="gap-3 border-primary">
+                    <View className="flex-row items-start gap-2">
+                      <Icon name="warning" size={20} color={colors.primary} />
+                      <View className="flex-1 gap-1">
+                        <Text variant="body-em" tone="primary">
+                          {t('trips.admin.release.viaticosWarning.title')}
+                        </Text>
+                        <Text variant="caption" tone="secondary">
+                          {t('trips.admin.release.viaticosWarning.body')}
+                        </Text>
+                      </View>
+                    </View>
+                    {onEditTrip ? (
+                      <Button
+                        label={t(
+                          'trips.admin.release.viaticosWarning.editTrip',
+                        )}
+                        variant="secondary"
+                        onPress={() => {
+                          resetAndClose()
+                          onEditTrip()
+                        }}
+                      />
+                    ) : null}
+                  </Card>
+                ) : null}
+
                 <View className="gap-2">
-                  <Text variant="body-em">
-                    {t('trips.admin.release.dialog.notesLabel')}
-                  </Text>
-                  <TextInput
+                  <Input
+                    label={t('trips.admin.release.dialog.notesLabel')}
                     value={notes}
                     onChangeText={(v) => {
                       setNotes(v)
@@ -153,14 +184,12 @@ export function ReleaseDialog({
                     placeholder={t(
                       'trips.admin.release.dialog.notesPlaceholder',
                     )}
-                    placeholderTextColor={colors.muted}
                     multiline
+                    numberOfLines={3}
                     maxLength={NOTES_MAX}
                     accessibilityLabel={t(
                       'trips.admin.release.dialog.notesLabel',
                     )}
-                    className="min-h-[96px] rounded-card border-hairline border-muted bg-background p-3 text-base font-sans text-foreground"
-                    textAlignVertical="top"
                   />
                   <Text
                     variant="caption"

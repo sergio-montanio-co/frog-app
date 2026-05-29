@@ -1,11 +1,10 @@
 import { useState } from 'react'
-import { Modal, TextInput, View } from 'react-native'
+import { Modal, View } from 'react-native'
 import { useTranslation } from 'react-i18next'
 
-import { Button, Text } from '@/components/atoms'
+import { Button, Input, Text } from '@/components/atoms'
 import { parseBackendError } from '@/lib/api/errors'
 import { useRejectContribution } from '@/lib/api/queries'
-import { colors } from '@/theme/colors'
 
 export type RejectDialogProps = {
   open: boolean
@@ -80,10 +79,8 @@ export function RejectDialog({
           </Text>
 
           <View className="gap-2">
-            <Text variant="body-em">
-              {t('trips.organizer.reject.reasonLabel')}
-            </Text>
-            <TextInput
+            <Input
+              label={t('trips.organizer.reject.reasonLabel')}
               value={reason}
               onChangeText={(v) => {
                 setReason(v)
@@ -91,27 +88,15 @@ export function RejectDialog({
               }}
               onBlur={() => setTouched(true)}
               placeholder={t('trips.organizer.reject.reasonPlaceholder')}
-              placeholderTextColor={colors.muted}
               multiline
+              numberOfLines={3}
               maxLength={MAX_LEN}
               accessibilityLabel={t('trips.organizer.reject.reasonLabel')}
-              className={`min-h-[96px] rounded-card border-hairline ${
-                visibleError ? 'border-primary' : 'border-muted'
-              } bg-background p-3 text-base font-sans text-foreground`}
-              textAlignVertical="top"
+              error={visibleError}
             />
-            <View className="flex-row items-center justify-between">
-              <View className="flex-1">
-                {visibleError ? (
-                  <Text variant="caption" tone="primary">
-                    {visibleError}
-                  </Text>
-                ) : null}
-              </View>
-              <Text variant="caption" tone="secondary">
-                {t('trips.organizer.reject.counter', { count: reason.length })}
-              </Text>
-            </View>
+            <Text variant="caption" tone="secondary" className="self-end">
+              {t('trips.organizer.reject.counter', { count: reason.length })}
+            </Text>
           </View>
 
           {submitError ? (

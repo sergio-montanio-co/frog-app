@@ -9,7 +9,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { useQueryClient } from '@tanstack/react-query'
 import { z } from 'zod'
 
-import { Text, Button, Input } from '@/components/atoms'
+import { Text, Button, Input, OtpInput } from '@/components/atoms'
 import { firstClerkErrorCode } from '@/lib/clerk/errors'
 import {
   clearPendingInvitation,
@@ -148,6 +148,7 @@ export default function SignUpScreen() {
                     autoCapitalize="none"
                     autoComplete="email"
                     keyboardType="email-address"
+                    leadingIcon="mail-outline"
                     error={
                       fieldState.error
                         ? t('auth.errors.invalidEmail')
@@ -180,14 +181,16 @@ export default function SignUpScreen() {
                 control={codeForm.control}
                 name="code"
                 render={({ field, fieldState }) => (
-                  <Input
+                  <OtpInput
                     label={t('auth.signUp.codeLabel')}
+                    helperText={t('auth.signUp.codeHelper')}
                     value={field.value}
                     onChangeText={field.onChange}
-                    onBlur={field.onBlur}
-                    keyboardType="number-pad"
-                    autoComplete="one-time-code"
-                    maxLength={6}
+                    length={6}
+                    onComplete={(v) => {
+                      field.onChange(v)
+                      codeForm.handleSubmit(onVerify)()
+                    }}
                     error={
                       fieldState.error || submitError
                         ? (submitError ?? t('auth.errors.invalidCode'))
@@ -200,6 +203,15 @@ export default function SignUpScreen() {
                 label={t('auth.signUp.codeSubmit')}
                 onPress={codeForm.handleSubmit(onVerify)}
                 loading={codeForm.formState.isSubmitting}
+              />
+              <Button
+                label={t('auth.signUp.changeEmail')}
+                variant="ghost"
+                onPress={() => {
+                  codeForm.reset({ code: '' })
+                  setSubmitError(null)
+                  setStage('form')
+                }}
               />
             </>
           )}

@@ -1,8 +1,15 @@
 import { Stack } from 'expo-router'
+import { useTranslation } from 'react-i18next'
 
 export default function TripLayout() {
+  const { t } = useTranslation()
   return (
-    <Stack screenOptions={{ headerShown: false }}>
+    <Stack
+      screenOptions={{
+        headerShown: false,
+        headerBackTitle: t('common.back'),
+      }}
+    >
       <Stack.Screen name="index" />
       <Stack.Screen
         name="plan/new"

@@ -31,5 +31,14 @@ export default function AppLayout() {
     )
   }
 
-  return <Stack screenOptions={{ headerShown: false }} />
+  return (
+    <Stack
+      screenOptions={{
+        headerShown: false,
+        // Default back title para cualquier screen que active el header. Sin
+        // esto, iOS muestra el segmento del parent route (ej. "(tabs)").
+        headerBackTitle: t('common.back'),
+      }}
+    />
+  )
 }

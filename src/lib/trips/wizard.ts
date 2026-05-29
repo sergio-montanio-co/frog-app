@@ -145,43 +145,7 @@ const step1Schema = z.object({
   isSolo: z.boolean(),
 })
 
-const step2Schema = z
-  .object({
-    purchaseDeadline: z.string().trim().min(1),
-    tripStartDate: z.string().trim().optional(),
-    tripEndDate: z.string().trim().optional(),
-  })
-  .refine(
-    ({ purchaseDeadline }) => {
-      const days = diffInDays(new Date(), new Date(purchaseDeadline))
-      return days >= MIN_DEADLINE_DAYS && days <= MAX_DEADLINE_DAYS
-    },
-    {
-      message: 'deadline_out_of_range',
-      path: ['purchaseDeadline'],
-    },
-  )
-  .refine(
-    ({ tripStartDate, purchaseDeadline }) =>
-      !tripStartDate ||
-      new Date(tripStartDate).getTime() > new Date(purchaseDeadline).getTime(),
-    {
-      message: 'trip_start_before_deadline',
-      path: ['tripStartDate'],
-    },
-  )
-  .refine(
-    ({ tripStartDate, tripEndDate }) =>
-      !tripStartDate ||
-      !tripEndDate ||
-      new Date(tripEndDate).getTime() > new Date(tripStartDate).getTime(),
-    {
-      message: 'trip_end_before_start',
-      path: ['tripEndDate'],
-    },
-  )
-
-const step3Schema = z
+const stepCostSchema = z
   .object({
     estimatedCostPerPerson: z
       .string()
@@ -203,6 +167,51 @@ const step3Schema = z
     {
       message: 'viaticos_required',
       path: ['viaticosTargetPerPerson'],
+    },
+  )
+
+const stepDatesSchema = z
+  .object({
+    purchaseDeadline: z.string().trim().min(1),
+    tripStartDate: z.string().trim().optional(),
+    tripEndDate: z.string().trim().optional(),
+    enableViaticos: z.boolean(),
+  })
+  .refine(
+    ({ purchaseDeadline }) => {
+      const days = diffInDays(new Date(), new Date(purchaseDeadline))
+      return days >= MIN_DEADLINE_DAYS && days <= MAX_DEADLINE_DAYS
+    },
+    {
+      message: 'deadline_out_of_range',
+      path: ['purchaseDeadline'],
+    },
+  )
+  .refine(
+    ({ enableViaticos, tripStartDate }) =>
+      !enableViaticos || Boolean(tripStartDate),
+    {
+      message: 'trip_start_required_for_viaticos',
+      path: ['tripStartDate'],
+    },
+  )
+  .refine(
+    ({ tripStartDate, purchaseDeadline }) =>
+      !tripStartDate ||
+      new Date(tripStartDate).getTime() > new Date(purchaseDeadline).getTime(),
+    {
+      message: 'trip_start_before_deadline',
+      path: ['tripStartDate'],
+    },
+  )
+  .refine(
+    ({ tripStartDate, tripEndDate }) =>
+      !tripStartDate ||
+      !tripEndDate ||
+      new Date(tripEndDate).getTime() > new Date(tripStartDate).getTime(),
+    {
+      message: 'trip_end_before_start',
+      path: ['tripEndDate'],
     },
   )
 
@@ -293,20 +302,21 @@ export function validateStep(step: Step, draft: DraftTrip): StepValidation {
       : { success: false, issues: issuesFrom(r.error) }
   }
   if (step === 2) {
-    const r = step2Schema.safeParse({
-      purchaseDeadline: draft.purchaseDeadline,
-      tripStartDate: draft.tripStartDate ?? undefined,
-      tripEndDate: draft.tripEndDate ?? undefined,
+    const r = stepCostSchema.safeParse({
+      estimatedCostPerPerson: draft.estimatedCostPerPerson,
+      enableViaticos: draft.enableViaticos,
+      viaticosTargetPerPerson: draft.viaticosTargetPerPerson,
     })
     return r.success
       ? { success: true }
       : { success: false, issues: issuesFrom(r.error) }
   }
   if (step === 3) {
-    const r = step3Schema.safeParse({
-      estimatedCostPerPerson: draft.estimatedCostPerPerson,
+    const r = stepDatesSchema.safeParse({
+      purchaseDeadline: draft.purchaseDeadline,
+      tripStartDate: draft.tripStartDate ?? undefined,
+      tripEndDate: draft.tripEndDate ?? undefined,
       enableViaticos: draft.enableViaticos,
-      viaticosTargetPerPerson: draft.viaticosTargetPerPerson,
     })
     return r.success
       ? { success: true }

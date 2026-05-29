@@ -10,12 +10,14 @@ import type { UpcomingSchedule } from '@/lib/api/queries'
 export type UpcomingInstallmentBannerProps = {
   upcoming: UpcomingSchedule
   onReport: () => void
+  isSolo?: boolean
   className?: string
 }
 
 export function UpcomingInstallmentBanner({
   upcoming,
   onReport,
+  isSolo,
   className,
 }: UpcomingInstallmentBannerProps) {
   const { t } = useTranslation()
@@ -49,7 +51,11 @@ export function UpcomingInstallmentBanner({
         </View>
       </View>
       <Button
-        label={t('trips.dashboard.upcoming.cta')}
+        label={t(
+          isSolo
+            ? 'trips.dashboard.upcoming.ctaSolo'
+            : 'trips.dashboard.upcoming.cta',
+        )}
         variant="primary"
         onPress={onReport}
       />

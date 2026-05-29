@@ -1,0 +1,37 @@
+diff --git a/node_modules/react-native-css-interop/dist/metro/index.js b/node_modules/react-native-css-interop/dist/metro/index.js
+index c91ba6a..1037a8e 100644
+--- a/node_modules/react-native-css-interop/dist/metro/index.js
++++ b/node_modules/react-native-css-interop/dist/metro/index.js
+@@ -176,15 +176,27 @@ async function startCSSProcessor(filePath, platform, isDev, { input, getCSSForPl
+                 ? css
+                 : getNativeJS((0, css_to_rn_1.cssToReactNativeRuntime)(css, options), debug)));
+             debug(`virtualStyles.emit ${platform}`);
++            // Metro 0.84+ (Expo SDK 56) renamed the haste change payload
++            // from { eventsQueue } to { changes: { addedFiles, modifiedFiles,
++            // removedFiles }, rootDir }. Without this shape, DependencyGraph
++            // crashes with "Cannot read properties of undefined (reading
++            // 'addedFiles')". Emit both for back-compat with older Metro.
++            const metadata = {
++                modifiedTime: Date.now(),
++                size: 1,
++                type: "virtual",
++            };
+             haste.emit("change", {
++                changes: {
++                    addedFiles: new Map(),
++                    modifiedFiles: new Map([[filePath, metadata]]),
++                    removedFiles: new Map(),
++                },
++                rootDir: "",
+                 eventsQueue: [
+                     {
+                         filePath,
+-                        metadata: {
+-                            modifiedTime: Date.now(),
+-                            size: 1,
+-                            type: "virtual",
+-                        },
++                        metadata,
+                         type: "change",
+                     },
+                 ],

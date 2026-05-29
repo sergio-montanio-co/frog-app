@@ -1,12 +1,5 @@
 import { Pressable, View } from 'react-native'
-import {
-  IconButton,
-  Input,
-  MoneyInput,
-  Text,
-  Icon,
-} from '@/components/atoms'
-import { colors } from '@/theme/colors'
+import { IconButton, Input, MoneyInput, Text } from '@/components/atoms'
 import { cn } from '@/lib/cn'
 
 export type CostCategory =
@@ -93,17 +86,13 @@ export function CostBreakdownRow({
         value={amount}
         onChangeText={onChangeAmount}
       />
-      <View className="flex-row items-center gap-2">
-        <Icon name="notes" size={16} color={colors.secondary} />
-        <View className="flex-1">
-          <Input
-            value={notes ?? ''}
-            onChangeText={onChangeNotes}
-            placeholder={notesPlaceholder}
-            accessibilityLabel={notesPlaceholder}
-          />
-        </View>
-      </View>
+      <Input
+        value={notes ?? ''}
+        onChangeText={onChangeNotes}
+        placeholder={notesPlaceholder}
+        accessibilityLabel={notesPlaceholder}
+        leadingIcon="notes"
+      />
     </View>
   )
 }

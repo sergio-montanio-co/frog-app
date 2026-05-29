@@ -51,6 +51,21 @@ Marcados como "necesarios desde sesión X" para no inflar el scope:
 | EmptyState   | 6      | creado   |
 | LoadingSkeleton | 10  | creado   |
 | ErrorState   | 10     | creado   |
+| InputShell   | 10b    | creado   |
+| OtpInput     | 10b    | creado   |
+
+## Inputs visuales (sesión 10b)
+
+Todos los campos de texto comparten el shell `InputShell`. Mantén el shell como única fuente de verdad — no rehagas el wrapper en una pantalla.
+
+- **Fondo**: `bg-foreground/[0.03]` (tinte cálido que separa del scroll cream sin parecer caja gris).
+- **Borde**: `border` (1px). Idle `border-muted`, focused `border-foreground/60`, error `border-primary`. Sin transición animada en v0.
+- **Altura**: `h-14` (56pt). Si el input es `multiline`, el shell pasa a `min-h-14 items-start py-3` y los iconos se alinean a la primera línea (`pt-1`).
+- **Leading icon**: Material Icons, `size={20}`, `color={colors.secondary}`. Úsalo solo en campos "estructurados" (email, phone, CLABE, banco, fecha, monto, búsqueda). En campos "libres" (nombre, descripción, notas) no.
+- **Trailing icon**: con `onPress`. Útil para clear, eye en password, etc. `hitSlop={8}` ya viene aplicado.
+- **Helper text**: `Text variant="caption" tone="secondary"` debajo del input. Si hay `error`, el helper se oculta y se muestra el error en `tone="primary"`.
+- **OTP**: usa `OtpInput` (basado en `react-native-confirmation-code-field`). 6 cajas separadas que heredan el mismo lenguaje visual del shell. `textContentType="oneTimeCode"` + `autoComplete="one-time-code"` para autofill iOS/Android. Pasa `onComplete` cuando quieras auto-submit al rellenar la longitud.
+- **No uses `TextInput` raw** ni rehagas el border-hairline + bg-background del v anterior. Si necesitas un campo con comportamiento exótico, mete tu input dentro de `<InputShell>` como children.
 
 Molecules creadas: `TripCard` (sesión 2), `WizardStep` · `MemberInputRow` · `CostBreakdownRow` (sesión 3), `Countdown` · `UpcomingInstallmentBanner` · `MemberStatusRow` · `PlanSummaryCard` (sesión 4), `BankAccountInfo` · `ContributionHistoryItem` (sesión 5), `RejectDialog` · `MemberPickerSheet` · `PendingContributionCard` · `FilterBar` (sesión 6), `InvitationPreviewCard` · `InvitedMemberRow` (sesión 7), `NotificationItem` · `PushPermissionPrompt` (sesión 8), `ReleaseDialog` · `WarningsListDialog` · `InviteLateDialog` (sesión 9), `CancelPlanDialog` · `DeleteTripDialog` (sesión 10).
 

@@ -52,9 +52,11 @@ import {
   canPausePlan,
   canResumePlan,
   canReleasePlan,
-  findActivePurchasePlan,
+  findActivePlan,
   findCancelledPurchasePlan,
   getMemberCurrentState,
+  hasViaticosPlan,
+  isOnlyActivePlan,
   isOrganizer,
   resolveMemberName,
 } from '@/lib/trips/helpers'
@@ -76,7 +78,7 @@ export default function TripDashboard() {
     markAllReadMutate(tripId)
   }, [tripId, markAllReadMutate])
 
-  const activePlan = trip.data ? findActivePurchasePlan(trip.data) : null
+  const activePlan = trip.data ? findActivePlan(trip.data) : null
   const cancelledPlan = trip.data
     ? findCancelledPurchasePlan(trip.data)
     : null
@@ -93,6 +95,7 @@ export default function TripDashboard() {
   })
   const pendingCount = pending.data?.items.length ?? 0
   const purchaseReady = trip.data?.status === 'purchase_ready'
+  const cancelled = trip.data?.status === 'cancelled'
 
   const [releaseOpen, setReleaseOpen] = useState(false)
   const [leaveOpen, setLeaveOpen] = useState(false)
@@ -193,7 +196,7 @@ export default function TripDashboard() {
         title={trip.data.name}
         onBack={() => router.back()}
         rightSlot={
-          userIsOrganizer ? (
+          userIsOrganizer && !cancelled ? (
             <View className="flex-row items-center">
               <IconButton
                 name="edit"
@@ -235,9 +238,11 @@ export default function TripDashboard() {
       >
         <DashboardHero trip={trip.data} />
 
+        {cancelled ? <CancelledTripBanner /> : null}
+
         {purchaseReady ? <PurchaseReadyBanner /> : null}
 
-        {showCancelledBanner ? <CancelledPlanBanner /> : null}
+        {showCancelledBanner && !cancelled ? <CancelledPlanBanner /> : null}
 
         {pauseError ? (
           <Card className="border-primary">
@@ -263,9 +268,10 @@ export default function TripDashboard() {
 
         {activePlan ? (
           <>
-            {!purchaseReady && upcoming.data ? (
+            {!purchaseReady && !cancelled && upcoming.data ? (
               <UpcomingInstallmentBanner
                 upcoming={upcoming.data}
+                isSolo={trip.data.isSolo}
                 onReport={() =>
                   router.push(`/trips/${trip.data.id}/contributions/new`)
                 }
@@ -319,19 +325,21 @@ export default function TripDashboard() {
                 </Text>
               </Pressable>
             ) : null}
-            <MembersSection
-              members={trip.data.members}
-              schedules={schedules.data?.items ?? []}
-              currentUserId={me.data.id}
-              currentMemberId={currentMember?.id}
-              trip={trip.data}
-              canRemove={userIsOrganizer}
-              onRemove={(m) => {
-                setRemoveError(null)
-                setRemoveTarget(m)
-              }}
-            />
-            {userIsOrganizer ? (
+            {!trip.data.isSolo ? (
+              <MembersSection
+                members={trip.data.members}
+                schedules={schedules.data?.items ?? []}
+                currentUserId={me.data.id}
+                currentMemberId={currentMember?.id}
+                trip={trip.data}
+                canRemove={userIsOrganizer}
+                onRemove={(m) => {
+                  setRemoveError(null)
+                  setRemoveTarget(m)
+                }}
+              />
+            ) : null}
+            {userIsOrganizer && !trip.data.isSolo ? (
               <PendingInvitesSection
                 tripId={trip.data.id}
                 tripName={trip.data.name}
@@ -339,11 +347,15 @@ export default function TripDashboard() {
                 onInvite={() => setInviteOpen(true)}
               />
             ) : null}
-            {userIsOrganizer && !purchaseReady ? (
+            {userIsOrganizer && !purchaseReady && !cancelled ? (
               <OrganizerActionsCard
                 tripId={trip.data.id}
                 pendingCount={pendingCount}
                 canCancel={canCancelPlan(activePlan)}
+                onlyPlan={
+                  activePlan ? isOnlyActivePlan(activePlan, trip.data) : false
+                }
+                isSolo={trip.data.isSolo}
                 onCancelPlan={() => setCancelPlanOpen(true)}
               />
             ) : null}
@@ -361,9 +373,21 @@ export default function TripDashboard() {
           tripName={trip.data.name}
           planId={releasablePlan.id}
           pendingCount={pendingCount}
+          viaticosNeedsTripStartDate={
+            releasablePlan.type === 'trip_purchase' &&
+            trip.data.enableViaticos === true &&
+            !trip.data.tripStartDate &&
+            !hasViaticosPlan(trip.data)
+          }
           onClose={() => setReleaseOpen(false)}
           onReviewPending={() =>
             router.push(`/trips/${trip.data.id}/organizer/pending`)
+          }
+          onEditTrip={() =>
+            router.push({
+              pathname: '/trips/[id]/edit',
+              params: { id: trip.data.id },
+            })
           }
         />
       ) : null}
@@ -411,8 +435,8 @@ export default function TripDashboard() {
       {userIsOrganizer && activePlan ? (
         <CancelPlanDialog
           open={cancelPlanOpen}
-          tripId={trip.data.id}
-          planId={activePlan.id}
+          trip={trip.data}
+          plan={activePlan}
           onClose={() => setCancelPlanOpen(false)}
         />
       ) : null}
@@ -494,6 +518,21 @@ function CancelledPlanBanner() {
   )
 }
 
+function CancelledTripBanner() {
+  const { t } = useTranslation()
+  return (
+    <Card className="gap-2">
+      <View className="flex-row items-center gap-2">
+        <Icon name="block" size={20} color={colors.secondary} />
+        <Text variant="title">{t('trips.dashboard.cancelled.title')}</Text>
+      </View>
+      <Text variant="body" tone="secondary">
+        {t('trips.dashboard.cancelled.body')}
+      </Text>
+    </Card>
+  )
+}
+
 function LeaveTripCard({ onPress }: { onPress: () => void }) {
   const { t } = useTranslation()
   return (
@@ -511,89 +550,103 @@ function OrganizerActionsCard({
   tripId,
   pendingCount,
   canCancel,
+  onlyPlan,
+  isSolo,
   onCancelPlan,
 }: {
   tripId: string
   pendingCount: number
   canCancel: boolean
+  onlyPlan: boolean
+  isSolo: boolean
   onCancelPlan: () => void
 }) {
+  const cancelKey = onlyPlan
+    ? 'trips.admin.cancelTrip.cta'
+    : 'trips.admin.cancelPlan.cta'
   const { t } = useTranslation()
   const router = useRouter()
+  if (isSolo && !canCancel) return null
   return (
     <Card className="gap-3">
       <Text variant="title">{t('trips.dashboard.organizer.title')}</Text>
 
-      <Pressable
-        onPress={() => router.push(`/trips/${tripId}/organizer/pending`)}
-        accessibilityRole="button"
-        accessibilityLabel={t('trips.dashboard.organizer.approve')}
-        className="flex-row items-center justify-between gap-2 py-2"
-      >
-        <View className="flex-1 flex-row items-center gap-2">
-          <Icon name="rule" size={20} color={colors.primary} />
-          <Text variant="body-em">
-            {t('trips.dashboard.organizer.approve')}
-          </Text>
-        </View>
-        {pendingCount > 0 ? (
-          <Badge tone="primary" label={String(pendingCount)} />
-        ) : (
-          <Icon
-            name="chevron-right"
-            size={20}
-            color={colors.secondary}
-          />
-        )}
-      </Pressable>
+      {!isSolo ? (
+        <>
+          <Pressable
+            onPress={() => router.push(`/trips/${tripId}/organizer/pending`)}
+            accessibilityRole="button"
+            accessibilityLabel={t('trips.dashboard.organizer.approve')}
+            className="flex-row items-center justify-between gap-2 py-2"
+          >
+            <View className="flex-1 flex-row items-center gap-2">
+              <Icon name="rule" size={20} color={colors.primary} />
+              <Text variant="body-em">
+                {t('trips.dashboard.organizer.approve')}
+              </Text>
+            </View>
+            {pendingCount > 0 ? (
+              <Badge tone="primary" label={String(pendingCount)} />
+            ) : (
+              <Icon
+                name="chevron-right"
+                size={20}
+                color={colors.secondary}
+              />
+            )}
+          </Pressable>
 
-      <Divider />
+          <Divider />
 
-      <Pressable
-        onPress={() => router.push(`/trips/${tripId}/organizer/contributions`)}
-        accessibilityRole="button"
-        accessibilityLabel={t('trips.dashboard.organizer.allContribs')}
-        className="flex-row items-center justify-between gap-2 py-2"
-      >
-        <View className="flex-1 flex-row items-center gap-2">
-          <Icon name="receipt-long" size={20} color={colors.primary} />
-          <Text variant="body-em">
-            {t('trips.dashboard.organizer.allContribs')}
-          </Text>
-        </View>
-        <Icon name="chevron-right" size={20} color={colors.secondary} />
-      </Pressable>
+          <Pressable
+            onPress={() =>
+              router.push(`/trips/${tripId}/organizer/contributions`)
+            }
+            accessibilityRole="button"
+            accessibilityLabel={t('trips.dashboard.organizer.allContribs')}
+            className="flex-row items-center justify-between gap-2 py-2"
+          >
+            <View className="flex-1 flex-row items-center gap-2">
+              <Icon name="receipt-long" size={20} color={colors.primary} />
+              <Text variant="body-em">
+                {t('trips.dashboard.organizer.allContribs')}
+              </Text>
+            </View>
+            <Icon name="chevron-right" size={20} color={colors.secondary} />
+          </Pressable>
 
-      <Divider />
+          <Divider />
 
-      <Pressable
-        onPress={() => router.push(`/trips/${tripId}/organizer/log`)}
-        accessibilityRole="button"
-        accessibilityLabel={t('trips.dashboard.organizer.logManual')}
-        className="flex-row items-center justify-between gap-2 py-2"
-      >
-        <View className="flex-1 flex-row items-center gap-2">
-          <Icon name="payments" size={20} color={colors.primary} />
-          <Text variant="body-em">
-            {t('trips.dashboard.organizer.logManual')}
-          </Text>
-        </View>
-        <Icon name="chevron-right" size={20} color={colors.secondary} />
-      </Pressable>
+          <Pressable
+            onPress={() => router.push(`/trips/${tripId}/organizer/log`)}
+            accessibilityRole="button"
+            accessibilityLabel={t('trips.dashboard.organizer.logManual')}
+            className="flex-row items-center justify-between gap-2 py-2"
+          >
+            <View className="flex-1 flex-row items-center gap-2">
+              <Icon name="payments" size={20} color={colors.primary} />
+              <Text variant="body-em">
+                {t('trips.dashboard.organizer.logManual')}
+              </Text>
+            </View>
+            <Icon name="chevron-right" size={20} color={colors.secondary} />
+          </Pressable>
+        </>
+      ) : null}
 
       {canCancel ? (
         <>
-          <Divider />
+          {!isSolo ? <Divider /> : null}
           <Pressable
             onPress={onCancelPlan}
             accessibilityRole="button"
-            accessibilityLabel={t('trips.admin.cancelPlan.cta')}
+            accessibilityLabel={t(cancelKey)}
             className="flex-row items-center justify-between gap-2 py-2"
           >
             <View className="flex-1 flex-row items-center gap-2">
               <Icon name="block" size={20} color={colors.secondary} />
               <Text variant="body-em" tone="secondary">
-                {t('trips.admin.cancelPlan.cta')}
+                {t(cancelKey)}
               </Text>
             </View>
             <Icon
@@ -674,11 +727,21 @@ function GroupProgressCard({ trip }: { trip: TripDto }) {
   const reportedPending = progress?.reportedPending
     ? Number(progress.reportedPending)
     : 0
+  const titleKey = trip.isSolo
+    ? 'trips.dashboard.soloProgress.title'
+    : 'trips.dashboard.groupProgress.title'
+  const collectedKey = trip.isSolo
+    ? 'trips.dashboard.soloProgress.collected'
+    : 'trips.dashboard.groupProgress.collected'
+  const showViaticosPreview =
+    trip.enableViaticos === true &&
+    Boolean(trip.viaticosTargetPerPerson) &&
+    !hasViaticosPlan(trip)
 
   return (
     <Card className="gap-3">
       <View className="flex-row items-center justify-between">
-        <Text variant="title">{t('trips.dashboard.groupProgress.title')}</Text>
+        <Text variant="title">{t(titleKey)}</Text>
         <Text variant="body-em" tone="primary">
           {t('trips.dashboard.groupProgress.percent', {
             percent: Math.round(percent),
@@ -690,7 +753,7 @@ function GroupProgressCard({ trip }: { trip: TripDto }) {
         accessibilityLabel={`${Math.round(percent)}%`}
       />
       <Text variant="caption" tone="secondary">
-        {t('trips.dashboard.groupProgress.collected', {
+        {t(collectedKey, {
           collected,
           target,
         })}
@@ -701,6 +764,18 @@ function GroupProgressCard({ trip }: { trip: TripDto }) {
             amount: formatMxn(progress!.reportedPending, { compact: true }),
           })}
         </Text>
+      ) : null}
+      {showViaticosPreview ? (
+        <View className="flex-row items-center gap-2 pt-1">
+          <Icon name="restaurant" size={16} color={colors.secondary} />
+          <Text variant="caption" tone="secondary" className="flex-1">
+            {t('trips.dashboard.viaticosPreview', {
+              amount: formatMxn(trip.viaticosTargetPerPerson!, {
+                compact: true,
+              }),
+            })}
+          </Text>
+        </View>
       ) : null}
     </Card>
   )
@@ -821,7 +896,7 @@ function MembersSection({
 }) {
   const { t } = useTranslation()
   const visibleMembers = useMemo(
-    () => members.filter((m) => m.status !== 'left' && m.status !== 'removed'),
+    () => members.filter((m) => m.status === 'active'),
     [members],
   )
 

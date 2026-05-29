@@ -4,7 +4,6 @@ import {
   Platform,
   Pressable,
   ScrollView,
-  TextInput,
   View,
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
@@ -19,6 +18,7 @@ import {
   Divider,
   Icon,
   IconButton,
+  Input,
   MoneyInput,
   Splash,
   Text,
@@ -379,31 +379,19 @@ export default function LogOnBehalfScreen() {
             editable={selectedMember !== null && selectedScheduleId !== null}
           />
 
-          <View className="gap-2">
-            <Text variant="body-em">
-              {t('trips.organizer.log.notesLabel')}
-            </Text>
-            <TextInput
-              value={draft.notes}
-              onChangeText={(notes) => {
-                setDraft((prev) => ({ ...prev, notes }))
-                touch('notes')
-              }}
-              placeholderTextColor={colors.muted}
-              multiline
-              maxLength={500}
-              accessibilityLabel={t('trips.organizer.log.notesLabel')}
-              className={`min-h-[96px] rounded-card border-hairline ${
-                visibleError('notes') ? 'border-primary' : 'border-muted'
-              } bg-background p-3 text-base font-sans text-foreground`}
-              textAlignVertical="top"
-            />
-            {visibleError('notes') ? (
-              <Text variant="caption" tone="primary">
-                {visibleError('notes')}
-              </Text>
-            ) : null}
-          </View>
+          <Input
+            label={t('trips.organizer.log.notesLabel')}
+            value={draft.notes}
+            onChangeText={(notes) => {
+              setDraft((prev) => ({ ...prev, notes }))
+              touch('notes')
+            }}
+            multiline
+            numberOfLines={3}
+            maxLength={500}
+            accessibilityLabel={t('trips.organizer.log.notesLabel')}
+            error={visibleError('notes')}
+          />
 
           <Text variant="caption" tone="secondary">
             {t('trips.organizer.log.helper')}

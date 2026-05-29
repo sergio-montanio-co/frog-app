@@ -1,8 +1,23 @@
 import { forwardRef, useState } from 'react'
-import { TextInput, View, type TextInputProps } from 'react-native'
+import {
+  Platform,
+  TextInput,
+  type StyleProp,
+  type TextInputProps,
+  type TextStyle,
+} from 'react-native'
+import { InputShell } from './InputShell'
 import { Text } from './Text'
-import { cn } from '@/lib/cn'
 import { colors } from '@/theme/colors'
+
+const MONEY_INPUT_STYLE: StyleProp<TextStyle> = Platform.select({
+  // UITextView (multiline) en iOS tiene textContainerInset (8,0,8,0) por
+  // default. Lo anulamos con paddingTop/Bottom: 0 para que el texto no se
+  // empuje hacia abajo del icono.
+  ios: { height: 24, paddingTop: 0, paddingBottom: 0 },
+  android: { padding: 0, margin: 0, includeFontPadding: false },
+  default: null,
+})
 
 export type MoneyInputProps = Omit<
   TextInputProps,
@@ -53,6 +68,7 @@ export const MoneyInput = forwardRef<TextInput, MoneyInputProps>(
       className,
       accessibilityLabel,
       placeholder,
+      editable = true,
       ...rest
     },
     ref,
@@ -61,43 +77,45 @@ export const MoneyInput = forwardRef<TextInput, MoneyInputProps>(
     const display = focused ? value : formatWithThousands(value)
 
     return (
-      <View className="gap-2">
-        {label ? <Text variant="body-em">{label}</Text> : null}
-        <View
-          className={cn(
-            'h-12 flex-row items-center rounded-card border-hairline border-muted bg-background px-4',
-            error && 'border-primary',
-            className,
-          )}
-        >
-          <Text variant="body" tone="secondary" className="pr-2">
+      <InputShell
+        label={label}
+        helperText={helperText}
+        error={error}
+        focused={focused}
+        disabled={!editable}
+        leadingContent={
+          <Text variant="body" tone="secondary">
             {currencyPrefix}
           </Text>
-          <TextInput
-            ref={ref}
-            value={display}
-            onChangeText={(raw) => onChangeText(cleanInput(raw))}
-            onFocus={() => setFocused(true)}
-            onBlur={() => setFocused(false)}
-            placeholder={placeholder ?? '0.00'}
-            placeholderTextColor={colors.muted}
-            inputMode="decimal"
-            keyboardType="decimal-pad"
-            accessibilityLabel={accessibilityLabel ?? label}
-            className="flex-1 text-base font-sans text-foreground"
-            {...rest}
-          />
-        </View>
-        {error ? (
-          <Text variant="caption" tone="primary">
-            {error}
-          </Text>
-        ) : helperText ? (
-          <Text variant="caption" tone="secondary">
-            {helperText}
-          </Text>
-        ) : null}
-      </View>
+        }
+        className={className}
+      >
+        <TextInput
+          ref={ref}
+          value={display}
+          onChangeText={(raw) => onChangeText(cleanInput(raw))}
+          onFocus={() => setFocused(true)}
+          onBlur={() => setFocused(false)}
+          placeholder={placeholder ?? '0.00'}
+          placeholderTextColor={colors.muted}
+          selectionColor={colors.primary}
+          inputMode="decimal"
+          keyboardType="decimal-pad"
+          editable={editable}
+          accessibilityLabel={accessibilityLabel ?? label}
+          // En iOS forzamos multiline+scrollEnabled=false para evitar el bug
+          // de placeholder/texto desincronizado del UITextField con Quicksand.
+          multiline={Platform.OS === 'ios'}
+          scrollEnabled={false}
+          submitBehavior={
+            Platform.OS === 'ios' ? 'blurAndSubmit' : undefined
+          }
+          className="font-sans text-base text-foreground"
+          textAlignVertical="center"
+          style={MONEY_INPUT_STYLE}
+          {...rest}
+        />
+      </InputShell>
     )
   },
 )

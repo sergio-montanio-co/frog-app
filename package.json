@@ -30,6 +30,7 @@
     "react-hook-form": "^7.76.1",
     "react-i18next": "^17.0.8",
     "react-native": "0.85.3",
+    "react-native-confirmation-code-field": "^9.0.0",
     "react-native-gesture-handler": "~2.31.1",
     "react-native-reanimated": "4.3.1",
     "react-native-safe-area-context": "~5.7.0",
@@ -42,12 +43,14 @@
   "devDependencies": {
     "@types/react": "~19.2.2",
     "openapi-typescript": "^7.13.0",
+    "patch-package": "^8.0.1",
     "typescript": "~6.0.3"
   },
   "scripts": {
+    "postinstall": "patch-package",
     "start": "expo start",
-    "android": "expo start --android",
-    "ios": "expo start --ios",
+    "android": "expo run:android",
+    "ios": "expo run:ios",
     "web": "expo start --web",
     "types:api": "openapi-typescript ${API_DOCS_URL:-https://api.frg.lat/docs-json} -o src/lib/api/schema.gen.ts",
     "types:api:local": "openapi-typescript http://localhost:3000/docs-json -o src/lib/api/schema.gen.ts",

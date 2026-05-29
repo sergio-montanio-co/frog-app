@@ -35,7 +35,9 @@ const esStrict = {
       codeTitle: 'Ingresa el código',
       codeSubtitle: 'Te enviamos un código a {{email}}',
       codeLabel: 'Código',
+      codeHelper: 'Lo encuentras en el correo que acabas de recibir.',
       codeSubmit: 'Verificar',
+      changeEmail: 'Cambiar correo',
       noAccount: '¿No tienes cuenta?',
       goToSignUp: 'Crear cuenta',
     },
@@ -49,7 +51,9 @@ const esStrict = {
       codeTitle: 'Verifica tu correo',
       codeSubtitle: 'Te enviamos un código a {{email}}',
       codeLabel: 'Código',
+      codeHelper: 'Lo encuentras en el correo que acabas de recibir.',
       codeSubmit: 'Verificar',
+      changeEmail: 'Cambiar correo',
       hasAccount: '¿Ya tienes cuenta?',
       goToSignIn: 'Iniciar sesión',
     },
@@ -103,6 +107,10 @@ const esStrict = {
         percent: '{{percent}} % confirmado',
         reportedPending: 'Reportado pendiente: {{amount}}',
       },
+      soloProgress: {
+        title: 'Tu progreso',
+        collected: 'Has ahorrado {{collected}} de {{target}}',
+      },
       planEmpty: {
         organizerTitle: 'Aún no configuras el ahorro',
         organizerBody:
@@ -115,6 +123,7 @@ const esStrict = {
         title: 'Tu próxima cuota: {{amount}}',
         body: 'Tu próxima cuota vence pronto.',
         cta: 'Reportar pago',
+        ctaSolo: 'Registrar pago',
         daysLeft: {
           one: 'Vence en {{count}} día',
           other: 'Vence en {{count}} días',
@@ -127,18 +136,24 @@ const esStrict = {
         youPrefix: 'Tú · {{name}}',
       },
       planSummary: {
-        title: 'Plan de compra',
+        purchaseTitle: 'Plan de compra',
+        viaticosTitle: 'Caja de viáticos',
         frequencyLine: 'Cada {{frequency}}',
         installmentsLine: '{{amount}} por persona · {{count}} cuotas',
         startsAt: 'Inicia el {{date}}',
         endsAt: 'Termina el {{date}}',
       },
+      viaticosPreview: 'Después abrirá caja de {{amount}} para viáticos',
       viewHistory: 'Ver historial',
       organizer: {
         title: 'Acciones de organizador',
         approve: 'Aprobar pagos',
         allContribs: 'Ver todas las contribuciones',
         logManual: 'Registrar pago manual',
+      },
+      cancelled: {
+        title: 'Viaje cancelado',
+        body: 'El plan de ahorro se cerró y el viaje pasó a estado cancelado. Los pagos confirmados se mantienen como histórico.',
       },
     },
     invitedMembers: {
@@ -391,12 +406,18 @@ const esStrict = {
         deadlinePlaceholder: 'Selecciona una fecha',
         realDatesLabel: 'Fechas reales del viaje (opcional)',
         tripStartLabel: 'Inicio del viaje',
+        tripStartLabelRequired: 'Inicio del viaje',
         tripEndLabel: 'Fin del viaje',
+        viaticosNoticeTitle: 'Activaste caja de viáticos',
+        viaticosNoticeBody:
+          'Necesitamos la fecha de inicio del viaje: es cuando se libera la caja.',
         errors: {
           deadline: 'Elige una fecha entre 7 días y 1 año desde hoy.',
           startBeforeDeadline:
             'El viaje debe empezar después de la fecha límite.',
           endBeforeStart: 'La fecha de fin debe ser posterior al inicio.',
+          tripStartRequiredForViaticos:
+            'Indica la fecha de inicio del viaje para activar viáticos.',
         },
       },
       step3: {
@@ -420,6 +441,8 @@ const esStrict = {
         viaticosHelp:
           'Un ahorro extra para gastos del viaje (comidas, transporte, entradas).',
         viaticosAmountLabel: 'Monto de viáticos por persona',
+        viaticosNeedsStartDate:
+          'En el siguiente paso te pediremos la fecha de inicio del viaje: es cuando se libera la caja.',
         errors: {
           costInvalid: 'El costo debe ser mayor a 0.',
           costTooHigh: 'El costo excede el máximo permitido.',
@@ -526,6 +549,11 @@ const esStrict = {
         warningsTitle: 'Plan liberado con avisos',
         warningsSubtitle:
           'El plan ya está liberado. Toma nota de estos avisos para hablarlo con el grupo.',
+        viaticosWarning: {
+          title: 'Falta fecha del viaje',
+          body: 'Activaste caja de viáticos. Para abrirla automáticamente al liberar, define la fecha de inicio del viaje primero.',
+          editTrip: 'Editar fecha del viaje',
+        },
       },
       leave: {
         cta: 'Salir del viaje',
@@ -579,6 +607,13 @@ const esStrict = {
         confirm: 'Cancelar plan',
         cancelledTitle: 'Plan cancelado',
         cancelledBody: 'El organizador canceló el plan. Los pagos confirmados se mantienen pero ya no se admiten nuevos.',
+      },
+      cancelTrip: {
+        cta: 'Cancelar viaje',
+        title: 'Cancelar viaje',
+        body: 'Vas a cancelar "{{tripName}}". El plan de ahorro se cierra y el viaje pasará a estado cancelado. Los pagos confirmados se mantienen. Esta acción no se puede deshacer.',
+        confirm: 'Cancelar viaje',
+        warningsTitle: 'Viaje cancelado',
       },
       deleteTrip: {
         cta: 'Eliminar viaje',

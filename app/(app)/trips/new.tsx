@@ -19,11 +19,11 @@ import { useCreateTrip } from '@/lib/api/queries'
 import { parseBackendError } from '@/lib/api/errors'
 
 import {
-  Step1,
-  Step2,
-  Step3,
-  Step4,
-  Step5,
+  StepBasics,
+  StepCost,
+  StepDates,
+  StepMembers,
+  StepReview,
 } from '@/components/organisms/newTripWizard'
 import {
   buildPayloadFromDraft,
@@ -125,12 +125,14 @@ export default function NewTripScreen() {
           contentContainerStyle={{ padding: 16, paddingBottom: 32, gap: 16 }}
           keyboardShouldPersistTaps="handled"
         >
-          {step === 1 ? <Step1 draft={draft} onChange={setDraft} /> : null}
-          {step === 2 ? <Step2 draft={draft} onChange={setDraft} /> : null}
-          {step === 3 ? <Step3 draft={draft} onChange={setDraft} /> : null}
-          {step === 4 ? <Step4 draft={draft} onChange={setDraft} /> : null}
+          {step === 1 ? <StepBasics draft={draft} onChange={setDraft} /> : null}
+          {step === 2 ? <StepCost draft={draft} onChange={setDraft} /> : null}
+          {step === 3 ? <StepDates draft={draft} onChange={setDraft} /> : null}
+          {step === 4 ? (
+            <StepMembers draft={draft} onChange={setDraft} />
+          ) : null}
           {step === 5 ? (
-            <Step5
+            <StepReview
               draft={draft}
               onChange={setDraft}
               submitError={submitError}

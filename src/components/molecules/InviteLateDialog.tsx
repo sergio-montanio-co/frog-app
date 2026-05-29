@@ -116,6 +116,13 @@ export function InviteLateDialog({
               keyboardType="email-address"
               error={visibleContactError}
               maxLength={120}
+              leadingIcon={
+                contact.trim().includes('@')
+                  ? 'mail-outline'
+                  : /^[+\d]/.test(contact.trim())
+                    ? 'phone'
+                    : undefined
+              }
             />
           </View>
 

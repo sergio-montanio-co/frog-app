@@ -13,11 +13,9 @@ import {
   COMMON_BANKS,
 } from '@/lib/trips/wizard'
 
-import type { StepProps } from './Step1'
+import type { StepProps } from './StepBasics'
 
-const OTHER_BANK = '__other__'
-
-export type Step5Props = StepProps & {
+export type StepReviewProps = StepProps & {
   submitError?: string | null
 }
 
@@ -32,7 +30,7 @@ function formatDate(iso: string | undefined, locale = 'es-MX'): string {
   }).format(d)
 }
 
-export function Step5({ draft, onChange, submitError }: Step5Props) {
+export function StepReview({ draft, onChange, submitError }: StepReviewProps) {
   const { t } = useTranslation()
 
   const bankInList = useMemo(
@@ -96,6 +94,7 @@ export function Step5({ draft, onChange, submitError }: Step5Props) {
               }
               autoCapitalize="words"
               maxLength={100}
+              leadingIcon="person-outline"
             />
             <Input
               label={t('trips.new.step5.clabeLabel')}
@@ -113,6 +112,7 @@ export function Step5({ draft, onChange, submitError }: Step5Props) {
               keyboardType="number-pad"
               maxLength={18}
               error={clabeError}
+              leadingIcon="account-balance"
             />
 
             <View className="gap-2">
@@ -187,6 +187,7 @@ export function Step5({ draft, onChange, submitError }: Step5Props) {
                   placeholder={t('trips.new.step5.bankPlaceholder')}
                   autoCapitalize="words"
                   maxLength={60}
+                  leadingIcon="account-balance"
                 />
               ) : null}
             </View>
@@ -207,7 +208,6 @@ export function Step5({ draft, onChange, submitError }: Step5Props) {
               multiline
               numberOfLines={3}
               maxLength={500}
-              className="h-24 pt-3"
             />
           </View>
         ) : null}

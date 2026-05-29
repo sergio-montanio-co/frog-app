@@ -12,7 +12,7 @@ export type StepProps = {
   onChange: (next: DraftTrip) => void
 }
 
-export function Step1({ draft, onChange }: StepProps) {
+export function StepBasics({ draft, onChange }: StepProps) {
   const { t } = useTranslation()
   return (
     <WizardStep
@@ -34,6 +34,7 @@ export function Step1({ draft, onChange }: StepProps) {
         onChangeText={(destination) => onChange({ ...draft, destination })}
         autoCapitalize="sentences"
         maxLength={200}
+        leadingIcon="place"
       />
       <Input
         label={t('trips.new.step1.cityLabel')}
@@ -69,7 +70,6 @@ export function Step1({ draft, onChange }: StepProps) {
         multiline
         numberOfLines={3}
         maxLength={2000}
-        className="h-24 pt-3"
       />
       <View className="flex-row items-start gap-3 rounded-card border-hairline border-muted p-4">
         <View className="flex-1 gap-1">

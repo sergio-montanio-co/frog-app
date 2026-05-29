@@ -8,12 +8,16 @@ export type WarningsListDialogProps = {
   open: boolean
   warnings: string[]
   onClose: () => void
+  title?: string
+  subtitle?: string
 }
 
 export function WarningsListDialog({
   open,
   warnings,
   onClose,
+  title,
+  subtitle,
 }: WarningsListDialogProps) {
   const { t } = useTranslation()
   return (
@@ -28,11 +32,11 @@ export function WarningsListDialog({
           <View className="flex-row items-center gap-2">
             <Icon name="info-outline" size={20} color={colors.primary} />
             <Text variant="title" className="flex-1">
-              {t('trips.admin.release.warningsTitle')}
+              {title ?? t('trips.admin.release.warningsTitle')}
             </Text>
           </View>
           <Text variant="body" tone="secondary">
-            {t('trips.admin.release.warningsSubtitle')}
+            {subtitle ?? t('trips.admin.release.warningsSubtitle')}
           </Text>
           <ScrollView className="max-h-72">
             <View className="gap-2">

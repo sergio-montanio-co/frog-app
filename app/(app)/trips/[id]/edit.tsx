@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import {
   KeyboardAvoidingView,
   Platform,
@@ -28,7 +28,11 @@ import {
   useUpdateTrip,
   type UpdateTripBody,
 } from '@/lib/api/queries'
-import { getResponsibleAccount, isOrganizer } from '@/lib/trips/helpers'
+import {
+  canEditTrip,
+  getResponsibleAccount,
+  isOrganizer,
+} from '@/lib/trips/helpers'
 import { CLABE_RE, COMMON_BANKS } from '@/lib/trips/wizard'
 
 type AccountDraft = {
@@ -148,6 +152,12 @@ export default function EditTripScreen() {
   const me = useMe()
   const trip = useTrip(id)
   const update = useUpdateTrip()
+
+  useEffect(() => {
+    if (trip.data && !canEditTrip(trip.data)) {
+      router.replace(`/trips/${trip.data.id}`)
+    }
+  }, [trip.data, router])
 
   const initialDraft = useMemo<EditDraft | null>(() => {
     if (!trip.data) return null
@@ -329,7 +339,6 @@ export default function EditTripScreen() {
               maxLength={2000}
               multiline
               numberOfLines={3}
-              className="h-24 pt-3"
             />
           </Section>
 
@@ -339,6 +348,7 @@ export default function EditTripScreen() {
               value={currentDraft.destination}
               onChangeText={(v) => updateField('destination', v)}
               maxLength={200}
+              leadingIcon="place"
             />
             <Input
               label={t('trips.new.step1.cityLabel')}
@@ -379,6 +389,7 @@ export default function EditTripScreen() {
               onChangeText={(v) => updateAccount('holderName', v)}
               maxLength={100}
               autoCapitalize="words"
+              leadingIcon="person-outline"
             />
             <Input
               label={t('trips.new.step5.clabeLabel')}
@@ -390,6 +401,7 @@ export default function EditTripScreen() {
               keyboardType="number-pad"
               maxLength={18}
               error={clabeError}
+              leadingIcon="account-balance"
             />
 
             <View className="gap-2">
@@ -415,6 +427,7 @@ export default function EditTripScreen() {
                 placeholder={t('trips.new.step5.bankPlaceholder')}
                 autoCapitalize="words"
                 maxLength={60}
+                leadingIcon="account-balance"
               />
             </View>
 
@@ -426,7 +439,6 @@ export default function EditTripScreen() {
               multiline
               numberOfLines={3}
               maxLength={500}
-              className="h-24 pt-3"
             />
           </Section>
 

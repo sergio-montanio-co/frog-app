@@ -3,7 +3,6 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
-  TextInput,
   View,
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
@@ -14,6 +13,7 @@ import { z } from 'zod'
 import {
   Button,
   IconButton,
+  Input,
   MoneyInput,
   Splash,
   Text,
@@ -25,7 +25,6 @@ import {
   useUpdateContribution,
 } from '@/lib/api/queries'
 import { flattenZodErrors } from '@/lib/forms'
-import { colors } from '@/theme/colors'
 
 type Draft = {
   amount: string
@@ -205,33 +204,25 @@ export default function EditContributionScreen() {
           />
 
           <View className="gap-2">
-            <Text variant="body-em">
-              {t('trips.contributions.new.notesLabel')}
-            </Text>
-            <TextInput
+            <Input
+              label={t('trips.contributions.new.notesLabel')}
               value={draft.reportedNotes}
               onChangeText={(reportedNotes) => {
                 setDraft((prev) => ({ ...prev, reportedNotes }))
                 touch('reportedNotes')
               }}
               placeholder={t('trips.contributions.new.notesPlaceholder')}
-              placeholderTextColor={colors.muted}
               multiline
+              numberOfLines={3}
               maxLength={500}
               accessibilityLabel={t('trips.contributions.new.notesLabel')}
-              className="min-h-[96px] rounded-card border-hairline border-muted bg-background p-3 text-base font-sans text-foreground"
-              textAlignVertical="top"
+              error={visibleError('reportedNotes')}
             />
             <Text variant="caption" tone="secondary" className="self-end">
               {t('trips.contributions.new.notesCount', {
                 count: draft.reportedNotes.length,
               })}
             </Text>
-            {visibleError('reportedNotes') ? (
-              <Text variant="caption" tone="primary">
-                {visibleError('reportedNotes')}
-              </Text>
-            ) : null}
           </View>
 
           {submitError ? (

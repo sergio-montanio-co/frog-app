@@ -1,5 +1,6 @@
 import { View } from 'react-native'
 import { IconButton, Input } from '@/components/atoms'
+import type { IconName } from '@/components/atoms'
 
 export type MemberContact = {
   name: string
@@ -19,6 +20,14 @@ export type MemberInputRowProps = {
   onChangeName: (value: string) => void
   onChangeContact: (value: string) => void
   onRemove: () => void
+}
+
+function detectContactIcon(value: string): IconName | undefined {
+  const trimmed = value.trim()
+  if (!trimmed) return undefined
+  if (trimmed.includes('@')) return 'mail-outline'
+  if (/^[+\d]/.test(trimmed)) return 'phone'
+  return undefined
 }
 
 export function MemberInputRow({
@@ -53,6 +62,7 @@ export function MemberInputRow({
           autoCapitalize="none"
           autoComplete="email"
           keyboardType="email-address"
+          leadingIcon={detectContactIcon(contact)}
         />
       </View>
       <IconButton

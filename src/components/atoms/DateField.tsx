@@ -3,9 +3,8 @@ import { Platform, Pressable, View } from 'react-native'
 import DateTimePicker, {
   type DateTimePickerEvent,
 } from '@react-native-community/datetimepicker'
-import { Icon } from './Icon'
+import { InputShell } from './InputShell'
 import { Text } from './Text'
-import { cn } from '@/lib/cn'
 import { colors } from '@/theme/colors'
 
 export type DateFieldProps = {
@@ -56,19 +55,20 @@ export function DateField({
 
   return (
     <View className="gap-2">
-      {label ? <Text variant="body-em">{label}</Text> : null}
-      <Pressable
-        onPress={() => setOpen((o) => !o)}
-        accessibilityRole="button"
-        accessibilityLabel={accessibilityLabel ?? label ?? 'Seleccionar fecha'}
-        className={cn(
-          'h-12 flex-row items-center rounded-card border-hairline border-muted bg-background px-4',
-          error && 'border-primary',
-          className,
-        )}
+      <InputShell
+        label={label}
+        helperText={helperText}
+        error={error}
+        focused={open}
+        leadingIcon="event"
+        className={className}
       >
-        <Icon name="event" size={20} color={colors.secondary} />
-        <View className="flex-1 pl-3">
+        <Pressable
+          onPress={() => setOpen((o) => !o)}
+          accessibilityRole="button"
+          accessibilityLabel={accessibilityLabel ?? label ?? 'Seleccionar fecha'}
+          className="flex-1"
+        >
           {display ? (
             <Text variant="body">{display}</Text>
           ) : (
@@ -76,8 +76,8 @@ export function DateField({
               {placeholder ?? 'dd / mmm / aaaa'}
             </Text>
           )}
-        </View>
-      </Pressable>
+        </Pressable>
+      </InputShell>
 
       {showInline ? (
         <View className="rounded-card border-hairline border-muted bg-background">
@@ -104,16 +104,6 @@ export function DateField({
           minimumDate={minimumDate}
           maximumDate={maximumDate}
         />
-      ) : null}
-
-      {error ? (
-        <Text variant="caption" tone="primary">
-          {error}
-        </Text>
-      ) : helperText ? (
-        <Text variant="caption" tone="secondary">
-          {helperText}
-        </Text>
       ) : null}
     </View>
   )

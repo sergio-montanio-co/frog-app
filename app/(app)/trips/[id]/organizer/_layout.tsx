@@ -1,10 +1,12 @@
 import { Redirect, Stack, useLocalSearchParams } from 'expo-router'
+import { useTranslation } from 'react-i18next'
 
 import { Splash } from '@/components/atoms'
 import { useMe, useTrip } from '@/lib/api/queries'
 import { isOrganizer } from '@/lib/trips/helpers'
 
 export default function OrganizerLayout() {
+  const { t } = useTranslation()
   const { id } = useLocalSearchParams<{ id: string }>()
   const me = useMe()
   const trip = useTrip(id)
@@ -16,7 +18,12 @@ export default function OrganizerLayout() {
   }
 
   return (
-    <Stack screenOptions={{ headerShown: false }}>
+    <Stack
+      screenOptions={{
+        headerShown: false,
+        headerBackTitle: t('common.back'),
+      }}
+    >
       <Stack.Screen name="pending" />
       <Stack.Screen name="contributions" />
       <Stack.Screen

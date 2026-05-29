@@ -25,13 +25,18 @@ function formatDate(iso: string, locale = 'es-MX'): string {
 export function PlanSummaryCard({ plan, className }: PlanSummaryCardProps) {
   const { t } = useTranslation()
   const frequencyLabel = t(`trips.plan.frequency.${plan.frequency}`)
+  const titleKey =
+    plan.type === 'viaticos'
+      ? 'trips.dashboard.planSummary.viaticosTitle'
+      : 'trips.dashboard.planSummary.purchaseTitle'
+  const iconName = plan.type === 'viaticos' ? 'restaurant' : 'savings'
 
   return (
     <Card className={cn('gap-3', className)}>
       <View className="flex-row items-center gap-2">
-        <Icon name="savings" size={20} color={colors.primary} />
+        <Icon name={iconName} size={20} color={colors.primary} />
         <Text variant="title" className="flex-1">
-          {t('trips.dashboard.planSummary.title')}
+          {t(titleKey)}
         </Text>
         {plan.status === 'paused' ? (
           <Badge tone="subtle" label={t('trips.admin.pausedBadge')} />

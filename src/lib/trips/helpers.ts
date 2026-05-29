@@ -19,6 +19,32 @@ export function findActivePurchasePlan(
   )
 }
 
+export function findActiveViaticosPlan(
+  trip: TripDto,
+): TripSavingsPlan | null {
+  return (
+    trip.savingsPlans.find(
+      (p) =>
+        p.type === 'viaticos' &&
+        (p.status === 'active' || p.status === 'paused'),
+    ) ?? null
+  )
+}
+
+export function hasViaticosPlan(trip: TripDto): boolean {
+  return trip.savingsPlans.some(
+    (p) => p.type === 'viaticos' && p.status !== 'cancelled',
+  )
+}
+
+/**
+ * Plan vivo del trip en orden de prioridad: viáticos activo > trip_purchase activo.
+ * Úsalo en dashboard para preguntar "qué plan está corriendo ahora".
+ */
+export function findActivePlan(trip: TripDto): TripSavingsPlan | null {
+  return findActiveViaticosPlan(trip) ?? findActivePurchasePlan(trip)
+}
+
 export function resolveMemberName(member: TripMember): string {
   return (
     member.user?.displayName?.trim() ||
@@ -99,6 +125,28 @@ export function canCancelPlan(plan: TripSavingsPlan | null): boolean {
 
 export function canDeleteTrip(trip: TripDto): boolean {
   return trip.status === 'draft'
+}
+
+export function isOnlyActivePlan(
+  plan: TripSavingsPlan,
+  trip: TripDto,
+): boolean {
+  const otherAlive = trip.savingsPlans.filter(
+    (p) =>
+      p.id !== plan.id &&
+      (p.status === 'active' ||
+        p.status === 'paused' ||
+        p.status === 'released'),
+  )
+  return otherAlive.length === 0
+}
+
+export function canEditTrip(trip: TripDto): boolean {
+  return trip.status !== 'cancelled' && trip.status !== 'completed'
+}
+
+export function isTripTerminal(trip: TripDto): boolean {
+  return trip.status === 'cancelled' || trip.status === 'completed'
 }
 
 export function findCancelledPurchasePlan(

@@ -14,7 +14,7 @@ import { colors } from '@/theme/colors'
 
 import { validateStep } from '@/lib/trips/wizard'
 
-import type { StepProps } from './Step1'
+import type { StepProps } from './StepBasics'
 
 function categoryLabels(t: (k: string) => string): Record<CostCategory, string> {
   return {
@@ -26,13 +26,13 @@ function categoryLabels(t: (k: string) => string): Record<CostCategory, string> 
   }
 }
 
-export function Step3({ draft, onChange }: StepProps) {
+export function StepCost({ draft, onChange }: StepProps) {
   const { t } = useTranslation()
   const [showBreakdown, setShowBreakdown] = useState(
     draft.costBreakdown.length > 0,
   )
 
-  const validation = validateStep(3, draft)
+  const validation = validateStep(2, draft)
   const issues = validation.success ? {} : validation.issues
   const costErrorCode = issues['estimatedCostPerPerson']
   const costError = draft.estimatedCostPerPerson
@@ -156,17 +156,22 @@ export function Step3({ draft, onChange }: StepProps) {
           />
         </View>
         {draft.enableViaticos ? (
-          <MoneyInput
-            label={t('trips.new.step3.viaticosAmountLabel')}
-            value={draft.viaticosTargetPerPerson ?? ''}
-            onChangeText={(v) =>
-              onChange({
-                ...draft,
-                viaticosTargetPerPerson: v || undefined,
-              })
-            }
-            error={viaticosError}
-          />
+          <>
+            <MoneyInput
+              label={t('trips.new.step3.viaticosAmountLabel')}
+              value={draft.viaticosTargetPerPerson ?? ''}
+              onChangeText={(v) =>
+                onChange({
+                  ...draft,
+                  viaticosTargetPerPerson: v || undefined,
+                })
+              }
+              error={viaticosError}
+            />
+            <Text variant="caption" tone="secondary">
+              {t('trips.new.step3.viaticosNeedsStartDate')}
+            </Text>
+          </>
         ) : null}
       </View>
     </WizardStep>

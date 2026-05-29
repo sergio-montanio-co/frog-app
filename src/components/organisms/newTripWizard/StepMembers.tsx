@@ -10,9 +10,9 @@ import {
   validateStep,
 } from '@/lib/trips/wizard'
 
-import type { StepProps } from './Step1'
+import type { StepProps } from './StepBasics'
 
-export function Step4({ draft, onChange }: StepProps) {
+export function StepMembers({ draft, onChange }: StepProps) {
   const { t } = useTranslation()
   const validation = validateStep(4, draft)
   const issues = validation.success ? {} : validation.issues

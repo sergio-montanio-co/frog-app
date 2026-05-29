@@ -33,7 +33,9 @@ export const en: TranslationSchema = {
       codeTitle: 'Enter the code',
       codeSubtitle: 'We sent a code to {{email}}',
       codeLabel: 'Code',
+      codeHelper: 'You can find it in the email we just sent.',
       codeSubmit: 'Verify',
+      changeEmail: 'Change email',
       noAccount: "Don't have an account?",
       goToSignUp: 'Create account',
     },
@@ -47,7 +49,9 @@ export const en: TranslationSchema = {
       codeTitle: 'Verify your email',
       codeSubtitle: 'We sent a code to {{email}}',
       codeLabel: 'Code',
+      codeHelper: 'You can find it in the email we just sent.',
       codeSubmit: 'Verify',
+      changeEmail: 'Change email',
       hasAccount: 'Already have an account?',
       goToSignIn: 'Sign in',
     },
@@ -101,6 +105,10 @@ export const en: TranslationSchema = {
         percent: '{{percent}} % confirmed',
         reportedPending: 'Reported pending: {{amount}}',
       },
+      soloProgress: {
+        title: 'Your progress',
+        collected: "You've saved {{collected}} of {{target}}",
+      },
       planEmpty: {
         organizerTitle: "You haven't set up savings yet",
         organizerBody:
@@ -113,6 +121,7 @@ export const en: TranslationSchema = {
         title: 'Your next installment: {{amount}}',
         body: 'Your next installment is due soon.',
         cta: 'Report payment',
+        ctaSolo: 'Log payment',
         daysLeft: {
           one: 'Due in {{count}} day',
           other: 'Due in {{count}} days',
@@ -125,18 +134,25 @@ export const en: TranslationSchema = {
         youPrefix: 'You · {{name}}',
       },
       planSummary: {
-        title: 'Purchase plan',
+        purchaseTitle: 'Purchase plan',
+        viaticosTitle: 'Spending money fund',
         frequencyLine: 'Every {{frequency}}',
         installmentsLine: '{{amount}} per person · {{count}} installments',
         startsAt: 'Starts on {{date}}',
         endsAt: 'Ends on {{date}}',
       },
+      viaticosPreview:
+        'A {{amount}} spending money fund will open after this one',
       viewHistory: 'View history',
       organizer: {
         title: 'Organizer actions',
         approve: 'Approve payments',
         allContribs: 'View all contributions',
         logManual: 'Log manual payment',
+      },
+      cancelled: {
+        title: 'Trip cancelled',
+        body: 'The savings plan was closed and the trip moved to cancelled. Confirmed payments are kept as history.',
       },
     },
     invitedMembers: {
@@ -385,11 +401,17 @@ export const en: TranslationSchema = {
         deadlinePlaceholder: 'Pick a date',
         realDatesLabel: 'Actual trip dates (optional)',
         tripStartLabel: 'Trip start',
+        tripStartLabelRequired: 'Trip start',
         tripEndLabel: 'Trip end',
+        viaticosNoticeTitle: 'Spending money fund enabled',
+        viaticosNoticeBody:
+          "We need the trip start date — that's when the fund unlocks.",
         errors: {
           deadline: 'Pick a date between 7 days and 1 year from today.',
           startBeforeDeadline: 'Trip must start after the deadline.',
           endBeforeStart: 'End date must be after the start.',
+          tripStartRequiredForViaticos:
+            'Set the trip start date to enable the spending money fund.',
         },
       },
       step3: {
@@ -413,6 +435,8 @@ export const en: TranslationSchema = {
         viaticosHelp:
           'Extra savings for trip expenses (food, transport, tickets).',
         viaticosAmountLabel: 'Spending money per person',
+        viaticosNeedsStartDate:
+          "The next step will ask for the trip start date — that's when the fund unlocks.",
         errors: {
           costInvalid: 'Cost must be greater than 0.',
           costTooHigh: 'Cost exceeds the maximum allowed.',
@@ -518,6 +542,11 @@ export const en: TranslationSchema = {
         warningsTitle: 'Plan released with notices',
         warningsSubtitle:
           "The plan is released. Take note of these warnings and follow up with the group.",
+        viaticosWarning: {
+          title: 'Trip start date missing',
+          body: "You enabled a spending money fund. To open it automatically when releasing, set the trip start date first.",
+          editTrip: 'Edit trip start date',
+        },
       },
       leave: {
         cta: 'Leave trip',
@@ -570,6 +599,13 @@ export const en: TranslationSchema = {
         confirm: 'Cancel plan',
         cancelledTitle: 'Plan cancelled',
         cancelledBody: 'The organizer cancelled the plan. Confirmed payments stay but new ones are not accepted.',
+      },
+      cancelTrip: {
+        cta: 'Cancel trip',
+        title: 'Cancel trip',
+        body: "You're going to cancel \"{{tripName}}\". The savings plan will close and the trip will move to cancelled. Confirmed payments stay. This action can't be undone.",
+        confirm: 'Cancel trip',
+        warningsTitle: 'Trip cancelled',
       },
       deleteTrip: {
         cta: 'Delete trip',
