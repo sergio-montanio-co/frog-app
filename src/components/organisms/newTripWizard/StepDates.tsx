@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { Pressable, View } from 'react-native'
 import { useTranslation } from 'react-i18next'
 
-import { DateField, Icon, Text } from '@/components/atoms'
+import { DateField, DateRangeField, Icon, Text } from '@/components/atoms'
 import { WizardStep } from '@/components/molecules'
 import { colors } from '@/theme/colors'
 
@@ -89,23 +89,19 @@ export function StepDates({ draft, onChange }: StepProps) {
 
       {tripStartRequired ? (
         <View className="rounded-card border-hairline border-muted p-4 gap-4">
-          <DateField
-            label={t('trips.new.step2.tripStartLabelRequired')}
-            value={draft.tripStartDate}
-            onChange={(iso) => onChange({ ...draft, tripStartDate: iso })}
-            minimumDate={minTripStart}
-            error={startError}
-          />
-          <DateField
-            label={t('trips.new.step2.tripEndLabel')}
-            value={draft.tripEndDate}
-            onChange={(iso) => onChange({ ...draft, tripEndDate: iso })}
-            minimumDate={
-              draft.tripStartDate
-                ? new Date(draft.tripStartDate)
-                : minTripStart
+          <DateRangeField
+            label={t('trips.new.step2.tripRangeLabel')}
+            startValue={draft.tripStartDate}
+            endValue={draft.tripEndDate}
+            onChange={({ start, end }) =>
+              onChange({
+                ...draft,
+                tripStartDate: start ?? '',
+                tripEndDate: end ?? '',
+              })
             }
-            error={endError}
+            minimumDate={minTripStart}
+            error={startError ?? endError}
           />
         </View>
       ) : (
@@ -127,24 +123,20 @@ export function StepDates({ draft, onChange }: StepProps) {
             />
           </Pressable>
           {showOptional ? (
-            <View className="border-t-hairline border-muted p-4 gap-4">
-              <DateField
-                label={t('trips.new.step2.tripStartLabel')}
-                value={draft.tripStartDate}
-                onChange={(iso) => onChange({ ...draft, tripStartDate: iso })}
-                minimumDate={minTripStart}
-                error={startError}
-              />
-              <DateField
-                label={t('trips.new.step2.tripEndLabel')}
-                value={draft.tripEndDate}
-                onChange={(iso) => onChange({ ...draft, tripEndDate: iso })}
-                minimumDate={
-                  draft.tripStartDate
-                    ? new Date(draft.tripStartDate)
-                    : minTripStart
+            <View className="border-t-hairline border-muted p-4">
+              <DateRangeField
+                label={t('trips.new.step2.tripRangeLabel')}
+                startValue={draft.tripStartDate}
+                endValue={draft.tripEndDate}
+                onChange={({ start, end }) =>
+                  onChange({
+                    ...draft,
+                    tripStartDate: start ?? '',
+                    tripEndDate: end ?? '',
+                  })
                 }
-                error={endError}
+                minimumDate={minTripStart}
+                error={startError ?? endError}
               />
             </View>
           ) : null}

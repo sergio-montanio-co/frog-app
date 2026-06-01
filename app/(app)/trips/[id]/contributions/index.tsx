@@ -25,7 +25,7 @@ import {
   type ContributionDto,
   type PaymentSchedule,
 } from '@/lib/api/queries'
-import { findActivePurchasePlan } from '@/lib/trips/helpers'
+import { findActivePlan } from '@/lib/trips/helpers'
 import { formatMxn } from '@/lib/money'
 
 type Group = {
@@ -88,7 +88,7 @@ export default function ContributionHistoryScreen() {
   const me = useMe()
   const trip = useTrip(tripId)
   const contributions = useMyContributions(tripId)
-  const activePlan = trip.data ? findActivePurchasePlan(trip.data) : null
+  const activePlan = trip.data ? findActivePlan(trip.data) : null
   const schedules = useTripSchedules(tripId, activePlan?.id)
   const remove = useDeleteContribution()
 

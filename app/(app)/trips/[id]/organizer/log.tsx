@@ -33,7 +33,7 @@ import {
   type TripMember,
 } from '@/lib/api/queries'
 import {
-  findActivePurchasePlan,
+  findActivePlan,
   resolveMemberName,
 } from '@/lib/trips/helpers'
 import { flattenZodErrors } from '@/lib/forms'
@@ -102,7 +102,7 @@ export default function LogOnBehalfScreen() {
   const { t, i18n } = useTranslation()
 
   const trip = useTrip(tripId)
-  const activePlan = trip.data ? findActivePurchasePlan(trip.data) : null
+  const activePlan = trip.data ? findActivePlan(trip.data) : null
   const schedules = useTripSchedules(tripId, activePlan?.id)
   const create = useCreateContribution(tripId ?? '')
 

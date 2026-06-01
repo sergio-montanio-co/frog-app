@@ -332,6 +332,7 @@ export default function TripDashboard() {
                 currentUserId={me.data.id}
                 currentMemberId={currentMember?.id}
                 trip={trip.data}
+                planType={activePlan.type}
                 canRemove={userIsOrganizer}
                 onRemove={(m) => {
                   setRemoveError(null)
@@ -883,6 +884,7 @@ function MembersSection({
   currentUserId,
   currentMemberId,
   trip,
+  planType,
   canRemove,
   onRemove,
 }: {
@@ -891,6 +893,7 @@ function MembersSection({
   currentUserId: string
   currentMemberId?: string
   trip: TripDto
+  planType?: 'trip_purchase' | 'viaticos'
   canRemove: boolean
   onRemove: (m: TripMember) => void
 }) {
@@ -916,6 +919,7 @@ function MembersSection({
             key={m.id}
             member={m}
             status={result?.status ?? null}
+            planType={planType}
             isCurrentUser={
               currentMemberId
                 ? m.id === currentMemberId

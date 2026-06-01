@@ -5,13 +5,19 @@ import { Avatar, Badge, Icon, IconButton, Text } from '@/components/atoms'
 import type { BadgeTone } from '@/components/atoms'
 import { colors } from '@/theme/colors'
 import { cn } from '@/lib/cn'
+import { formatMxn } from '@/lib/money'
 import { resolveMemberName } from '@/lib/trips/helpers'
-import type { MemberCuotaStatus, TripMember } from '@/lib/api/queries'
+import type {
+  MemberCuotaStatus,
+  TripMember,
+  TripSavingsPlan,
+} from '@/lib/api/queries'
 
 export type MemberStatusRowProps = {
   member: TripMember
   status: MemberCuotaStatus | null
   isCurrentUser?: boolean
+  planType?: TripSavingsPlan['type']
   onRemove?: () => void
   className?: string
 }
@@ -40,10 +46,20 @@ const STATE_META: Record<CuotaState, StateMeta> = {
   pending: { i18nKey: 'trips.member.state.pending', tone: 'subtle' },
 }
 
+// En viáticos no aplica la noción de "atrasado/pendiente": la caja es wallet
+// libre y al pasar tripStartDate el organizador libera lo que haya. Renombramos
+// los estados de no-aporte; paid/partial/reported conservan semántica.
+const VIATICOS_STATE_META: Record<CuotaState, StateMeta> = {
+  ...STATE_META,
+  late: { i18nKey: 'trips.member.viaticosState.contributed', tone: 'neutral' },
+  pending: { i18nKey: 'trips.member.viaticosState.empty', tone: 'subtle' },
+}
+
 export function MemberStatusRow({
   member,
   status,
   isCurrentUser,
+  planType,
   onRemove,
   className,
 }: MemberStatusRowProps) {
@@ -53,6 +69,8 @@ export function MemberStatusRow({
   const display = isCurrentUser
     ? t('trips.dashboard.members.youPrefix', { name: baseName })
     : baseName
+  const isViaticos = planType === 'viaticos'
+  const stateMeta = isViaticos ? VIATICOS_STATE_META : STATE_META
 
   return (
     <View
@@ -76,18 +94,22 @@ export function MemberStatusRow({
           <Text variant="caption" tone="secondary">
             {member.invitedEmail ?? member.invitedPhone ?? ''}
           </Text>
+        ) : isViaticos && status ? (
+          <Text variant="caption" tone="secondary">
+            {formatMxn(status.confirmed)}
+          </Text>
         ) : null}
       </View>
       {isInvited ? (
         <Badge label={t('trips.member.pendingAcceptance')} tone="subtle" />
       ) : status ? (
-        <Badge label={t(STATE_META[status.state].i18nKey)} tone={STATE_META[status.state].tone}>
-          {STATE_META[status.state].icon ? (
+        <Badge label={t(stateMeta[status.state].i18nKey)} tone={stateMeta[status.state].tone}>
+          {stateMeta[status.state].icon ? (
             <Icon
-              name={STATE_META[status.state].icon!}
+              name={stateMeta[status.state].icon!}
               size={16}
               color={
-                STATE_META[status.state].tone === 'primary'
+                stateMeta[status.state].tone === 'primary'
                   ? colors.background
                   : colors.secondary
               }

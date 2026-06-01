@@ -96,7 +96,11 @@ export default function CreateSavingsPlanScreen() {
 
   const [draft, setDraft] = useState<DraftPlan>(() => ({
     frequency: 'biweekly',
-    startDate: today,
+    // Usamos la hora actual real (no 00:00 local) para que el backend reciba
+    // un timestamp >= now en su huso. `todayIsoStart()` normalizado al inicio
+    // del día local cruza al día anterior en UTC tras las 18:00 MX y dispara
+    // un falso "fecha en el pasado".
+    startDate: new Date().toISOString(),
     targetDate: purchaseDeadline,
     targetAmountPerPerson: estimatedCost,
   }))

@@ -48,7 +48,7 @@ export function DateField({
   const showInline = open && Platform.OS === 'ios'
 
   function handleChange(event: DateTimePickerEvent, picked?: Date) {
-    if (Platform.OS === 'android') setOpen(false)
+    setOpen(false)
     if (event.type === 'dismissed' || !picked) return
     onChange(picked.toISOString())
   }

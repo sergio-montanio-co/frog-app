@@ -40,6 +40,7 @@ Marcados como "necesarios desde sesión X" para no inflar el scope:
 | Stepper      | 3      | creado   |
 | IconButton   | 3      | creado   |
 | DateField    | 3      | creado   |
+| DateRangeField | 3    | creado   |
 | MoneyInput   | 3      | creado   |
 | Badge        | 4      | creado   |
 | Divider      | 4      | creado   |

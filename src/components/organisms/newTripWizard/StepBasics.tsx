@@ -2,7 +2,11 @@ import { Switch, View } from 'react-native'
 import { useTranslation } from 'react-i18next'
 
 import { Input, Text } from '@/components/atoms'
-import { DestinationPicker, WizardStep } from '@/components/molecules'
+import {
+  DestinationPicker,
+  MarkdownTextarea,
+  WizardStep,
+} from '@/components/molecules'
 import { colors } from '@/theme/colors'
 
 import type { DraftTrip } from '@/lib/trips/wizard'
@@ -56,14 +60,13 @@ export function StepBasics({ draft, onChange }: StepProps) {
           }
         }}
       />
-      <Input
+      <MarkdownTextarea
         label={t('trips.new.step1.descriptionLabel')}
         placeholder={t('trips.new.step1.descriptionPlaceholder')}
         value={draft.description ?? ''}
         onChangeText={(description) =>
           onChange({ ...draft, description: description || undefined })
         }
-        multiline
         numberOfLines={3}
         maxLength={2000}
       />

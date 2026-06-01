@@ -30,7 +30,7 @@ import {
   useUpcomingInstallment,
 } from '@/lib/api/queries'
 import {
-  findActivePurchasePlan,
+  findActivePlan,
   getResponsibleAccount,
 } from '@/lib/trips/helpers'
 import { flattenZodErrors } from '@/lib/forms'
@@ -79,7 +79,7 @@ export default function ReportContributionScreen() {
   const upcoming = useUpcomingInstallment(tripId)
   const create = useCreateContribution(tripId ?? '')
 
-  const activePlan = trip.data ? findActivePurchasePlan(trip.data) : null
+  const activePlan = trip.data ? findActivePlan(trip.data) : null
   const account = trip.data ? getResponsibleAccount(trip.data) : null
 
   const remaining = upcoming.data?.myStatus.remaining ?? '0.00'
@@ -94,7 +94,11 @@ export default function ReportContributionScreen() {
   const [submitError, setSubmitError] = useState<string | null>(null)
 
   if (upcoming.data && !initialized) {
-    setDraft((prev) => ({ ...prev, amount: remaining }))
+    // En viáticos (wallet libre) no prefilleamos: el usuario aporta el monto
+    // que quiera, sin atarse al "te falta X" (que puede ser 0 si ya cubrió).
+    const prefill =
+      upcoming.data.planType === 'viaticos' ? '' : remaining
+    setDraft((prev) => ({ ...prev, amount: prefill }))
     setInitialized(true)
   }
 
@@ -233,25 +237,42 @@ export default function ReportContributionScreen() {
             </Text>
           </View>
 
-          <Card className="gap-2">
-            <View className="flex-row items-center gap-2">
-              <Icon name="payments" size={20} color={colors.primary} />
-              <Text variant="body-em">
-                {t('trips.contributions.new.installmentLabel', {
-                  n: upcoming.data.installmentNumber,
+          {upcoming.data.planType === 'viaticos' ? (
+            <Card className="gap-2">
+              <View className="flex-row items-center gap-2">
+                <Icon name="savings" size={20} color={colors.primary} />
+                <Text variant="body-em">
+                  {t('trips.plan.viaticos.title')}
+                </Text>
+              </View>
+              <Text variant="body" tone="secondary">
+                {t('trips.contributions.new.viaticosProgress', {
+                  confirmed: formatMxn(upcoming.data.myStatus.confirmed),
+                  target: formatMxn(target),
                 })}
               </Text>
-            </View>
-            <Text variant="caption" tone="secondary">
-              {dueLabel}
-            </Text>
-            <Text variant="body" tone="secondary">
-              {t('trips.contributions.new.remainingHint', {
-                remaining: formatMxn(remaining),
-                target: formatMxn(target),
-              })}
-            </Text>
-          </Card>
+            </Card>
+          ) : (
+            <Card className="gap-2">
+              <View className="flex-row items-center gap-2">
+                <Icon name="payments" size={20} color={colors.primary} />
+                <Text variant="body-em">
+                  {t('trips.contributions.new.installmentLabel', {
+                    n: upcoming.data.installmentNumber,
+                  })}
+                </Text>
+              </View>
+              <Text variant="caption" tone="secondary">
+                {dueLabel}
+              </Text>
+              <Text variant="body" tone="secondary">
+                {t('trips.contributions.new.remainingHint', {
+                  remaining: formatMxn(remaining),
+                  target: formatMxn(target),
+                })}
+              </Text>
+            </Card>
+          )}
 
           <MoneyInput
             label={t('trips.contributions.new.amountLabel')}
@@ -260,7 +281,11 @@ export default function ReportContributionScreen() {
               setDraft((prev) => ({ ...prev, amount }))
               touch('amount')
             }}
-            helperText={t('trips.contributions.new.amountHelper')}
+            helperText={t(
+              upcoming.data.planType === 'viaticos'
+                ? 'trips.contributions.new.viaticosHelper'
+                : 'trips.contributions.new.amountHelper',
+            )}
             error={visibleError('amount')}
           />
 

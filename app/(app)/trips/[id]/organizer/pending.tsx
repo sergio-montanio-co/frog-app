@@ -23,7 +23,7 @@ import {
   useTripSchedules,
   type ContributionDto,
 } from '@/lib/api/queries'
-import { findActivePurchasePlan } from '@/lib/trips/helpers'
+import { findActivePlan } from '@/lib/trips/helpers'
 
 export default function OrganizerPendingScreen() {
   const { id: tripId } = useLocalSearchParams<{ id: string }>()
@@ -32,7 +32,7 @@ export default function OrganizerPendingScreen() {
 
   const me = useMe()
   const trip = useTrip(tripId)
-  const activePlan = trip.data ? findActivePurchasePlan(trip.data) : null
+  const activePlan = trip.data ? findActivePlan(trip.data) : null
   const schedules = useTripSchedules(tripId, activePlan?.id)
   const pending = usePendingContributions(tripId)
 

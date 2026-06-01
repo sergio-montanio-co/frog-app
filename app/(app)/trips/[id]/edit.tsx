@@ -12,14 +12,14 @@ import { z } from 'zod'
 
 import {
   Button,
-  DateField,
+  DateRangeField,
   Icon,
   IconButton,
   Input,
   Splash,
   Text,
 } from '@/components/atoms'
-import { DestinationPicker } from '@/components/molecules'
+import { DestinationPicker, MarkdownTextarea } from '@/components/molecules'
 import { colors } from '@/theme/colors'
 import { parseBackendError } from '@/lib/api/errors'
 import {
@@ -362,12 +362,11 @@ export default function EditTripScreen() {
               maxLength={100}
               autoCapitalize="words"
             />
-            <Input
+            <MarkdownTextarea
               label={t('trips.new.step1.descriptionLabel')}
               value={currentDraft.description}
               onChangeText={(v) => updateField('description', v)}
               maxLength={2000}
-              multiline
               numberOfLines={3}
             />
           </Section>
@@ -395,15 +394,18 @@ export default function EditTripScreen() {
           </Section>
 
           <Section title={t('trips.edit.section.dates')}>
-            <DateField
-              label={t('trips.new.step2.tripStartLabel')}
-              value={currentDraft.tripStartDate || undefined}
-              onChange={(iso) => updateField('tripStartDate', iso ?? '')}
-            />
-            <DateField
-              label={t('trips.new.step2.tripEndLabel')}
-              value={currentDraft.tripEndDate || undefined}
-              onChange={(iso) => updateField('tripEndDate', iso ?? '')}
+            <DateRangeField
+              label={t('trips.new.step2.tripRangeLabel')}
+              startValue={currentDraft.tripStartDate || undefined}
+              endValue={currentDraft.tripEndDate || undefined}
+              onChange={({ start, end }) => {
+                setDraft({
+                  ...(currentDraft as EditDraft),
+                  tripStartDate: start ?? '',
+                  tripEndDate: end ?? '',
+                })
+                setSubmitError(null)
+              }}
               error={endBeforeStartError}
             />
           </Section>

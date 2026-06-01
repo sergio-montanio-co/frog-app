@@ -7,6 +7,11 @@ import type {
   TripSavingsPlan,
 } from '@/lib/api/queries'
 
+/**
+ * Busca el plan de tipo `trip_purchase` en estado active/paused.
+ * Para "el plan actualmente activo del trip" sin importar tipo,
+ * usa {@link findActivePlan} (pivotea a viáticos primero).
+ */
 export function findActivePurchasePlan(
   trip: TripDto,
 ): TripSavingsPlan | null {

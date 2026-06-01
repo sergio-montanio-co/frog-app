@@ -51,3 +51,5 @@ export type {
   DestinationPickerProps,
   DestinationValue,
 } from './DestinationPicker'
+export { MarkdownTextarea } from './MarkdownTextarea'
+export type { MarkdownTextareaProps } from './MarkdownTextarea'

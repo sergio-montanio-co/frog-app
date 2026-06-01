@@ -130,6 +130,12 @@ const esStrict = {
         },
         overdue: 'Vencida hace {{count}} días',
       },
+      viaticosWallet: {
+        title: 'Caja de viáticos',
+        empty: 'Aún no aportas. Objetivo sugerido: {{target}}.',
+        progress: 'Has aportado {{confirmed}} de {{target}} sugerido.',
+        cta: 'Aportar',
+      },
       members: {
         title: 'Miembros',
         invitedHint: 'Aún sin aceptar la invitación',
@@ -290,6 +296,12 @@ const esStrict = {
         zeroAmount: 'El monto debe ser mayor a 0.',
         generic: 'No pudimos crear el plan. Intenta de nuevo.',
       },
+      viaticos: {
+        title: 'Caja de viáticos',
+        body: 'Objetivo sugerido {{target}} por persona. Cierra el {{tripStart}}.',
+        helper:
+          'Aporta cuando quieras y cuanto quieras. Lo que cada quien aporte queda registrado.',
+      },
     },
     member: {
       state: {
@@ -298,6 +310,10 @@ const esStrict = {
         reported: 'Reportado',
         late: 'Atrasado',
         pending: 'Pendiente',
+      },
+      viaticosState: {
+        empty: 'Sin aportar',
+        contributed: 'Aportando',
       },
       pendingAcceptance: 'Pendiente de aceptar',
     },
@@ -316,6 +332,9 @@ const esStrict = {
         amountLabel: 'Monto que vas a reportar',
         amountHelper:
           'Puedes reportar un monto menor si vas a pagar en partes.',
+        viaticosHelper:
+          'Aporta lo que quieras. El organizador te liberará el total al iniciar el viaje.',
+        viaticosProgress: 'Has aportado {{confirmed}} de {{target}} sugerido.',
         notesLabel: 'Notas (opcional)',
         notesPlaceholder:
           'Referencia del SPEI, comentarios para el organizador…',
@@ -412,6 +431,7 @@ const esStrict = {
         tripStartLabel: 'Inicio del viaje',
         tripStartLabelRequired: 'Inicio del viaje',
         tripEndLabel: 'Fin del viaje',
+        tripRangeLabel: 'Inicio y fin del viaje',
         viaticosNoticeTitle: 'Activaste caja de viáticos',
         viaticosNoticeBody:
           'Necesitamos la fecha de inicio del viaje: es cuando se libera la caja.',
@@ -746,6 +766,12 @@ const esStrict = {
     searching: 'Buscando lugares…',
     notFound: 'No encuentro mi lugar',
     clear: 'Limpiar búsqueda',
+  },
+  markdown: {
+    bold: 'Negrita',
+    italic: 'Cursiva',
+    bullet: 'Lista con viñetas',
+    preview: 'Vista previa',
   },
 } as const
 

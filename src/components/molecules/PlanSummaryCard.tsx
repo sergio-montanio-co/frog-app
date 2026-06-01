@@ -24,19 +24,39 @@ function formatDate(iso: string, locale = 'es-MX'): string {
 
 export function PlanSummaryCard({ plan, className }: PlanSummaryCardProps) {
   const { t } = useTranslation()
-  const frequencyLabel = t(`trips.plan.frequency.${plan.frequency}`)
-  const titleKey =
-    plan.type === 'viaticos'
-      ? 'trips.dashboard.planSummary.viaticosTitle'
-      : 'trips.dashboard.planSummary.purchaseTitle'
-  const iconName = plan.type === 'viaticos' ? 'restaurant' : 'savings'
 
+  if (plan.type === 'viaticos') {
+    return (
+      <Card className={cn('gap-2', className)}>
+        <View className="flex-row items-center gap-2">
+          <Icon name="restaurant" size={20} color={colors.primary} />
+          <Text variant="title" className="flex-1">
+            {t('trips.plan.viaticos.title')}
+          </Text>
+          {plan.status === 'paused' ? (
+            <Badge tone="subtle" label={t('trips.admin.pausedBadge')} />
+          ) : null}
+        </View>
+        <Text variant="body">
+          {t('trips.plan.viaticos.body', {
+            target: formatMxn(plan.targetAmountPerPerson),
+            tripStart: formatDate(plan.targetDate),
+          })}
+        </Text>
+        <Text variant="caption" tone="secondary">
+          {t('trips.plan.viaticos.helper')}
+        </Text>
+      </Card>
+    )
+  }
+
+  const frequencyLabel = t(`trips.plan.frequency.${plan.frequency}`)
   return (
     <Card className={cn('gap-3', className)}>
       <View className="flex-row items-center gap-2">
-        <Icon name={iconName} size={20} color={colors.primary} />
+        <Icon name="savings" size={20} color={colors.primary} />
         <Text variant="title" className="flex-1">
-          {t(titleKey)}
+          {t('trips.dashboard.planSummary.purchaseTitle')}
         </Text>
         {plan.status === 'paused' ? (
           <Badge tone="subtle" label={t('trips.admin.pausedBadge')} />

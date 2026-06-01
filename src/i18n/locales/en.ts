@@ -128,6 +128,12 @@ export const en: TranslationSchema = {
         },
         overdue: 'Overdue by {{count}} days',
       },
+      viaticosWallet: {
+        title: 'Spending money fund',
+        empty: "You haven't contributed yet. Suggested goal: {{target}}.",
+        progress: "You've contributed {{confirmed}} of {{target}} suggested.",
+        cta: 'Contribute',
+      },
       members: {
         title: 'Members',
         invitedHint: 'Invitation not accepted yet',
@@ -287,6 +293,12 @@ export const en: TranslationSchema = {
         zeroAmount: 'Amount must be greater than 0.',
         generic: "Couldn't create the plan. Try again.",
       },
+      viaticos: {
+        title: 'Spending money fund',
+        body: 'Suggested goal {{target}} per person. Closes on {{tripStart}}.',
+        helper:
+          'Contribute whenever and however much you want. Each contribution is recorded.',
+      },
     },
     member: {
       state: {
@@ -295,6 +307,10 @@ export const en: TranslationSchema = {
         reported: 'Reported',
         late: 'Late',
         pending: 'Pending',
+      },
+      viaticosState: {
+        empty: 'No contribution',
+        contributed: 'Contributing',
       },
       pendingAcceptance: 'Pending acceptance',
     },
@@ -312,6 +328,9 @@ export const en: TranslationSchema = {
         remainingHint: 'You still owe {{remaining}} of {{target}}',
         amountLabel: 'Amount to report',
         amountHelper: 'You can report a smaller amount if paying in parts.',
+        viaticosHelper:
+          "Contribute whatever you want. The organizer releases the total when the trip starts.",
+        viaticosProgress: "You've contributed {{confirmed}} of {{target}} suggested.",
         notesLabel: 'Notes (optional)',
         notesPlaceholder:
           'SPEI reference, notes for the organizer…',
@@ -407,6 +426,7 @@ export const en: TranslationSchema = {
         tripStartLabel: 'Trip start',
         tripStartLabelRequired: 'Trip start',
         tripEndLabel: 'Trip end',
+        tripRangeLabel: 'Trip start and end',
         viaticosNoticeTitle: 'Spending money fund enabled',
         viaticosNoticeBody:
           "We need the trip start date — that's when the fund unlocks.",
@@ -738,5 +758,11 @@ export const en: TranslationSchema = {
     searching: 'Searching places…',
     notFound: "I can't find my place",
     clear: 'Clear search',
+  },
+  markdown: {
+    bold: 'Bold',
+    italic: 'Italic',
+    bullet: 'Bulleted list',
+    preview: 'Preview',
   },
 }
