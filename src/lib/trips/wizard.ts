@@ -4,6 +4,7 @@ import type {
   CreateTripBody,
   TripMember,
 } from '@/lib/api/queries'
+import { resolveBankFromClabe, validateClabe } from '@/lib/banks'
 
 import type { CostCategory } from '@/components/molecules'
 
@@ -32,6 +33,7 @@ export type DraftTrip = {
   destination: string
   destinationCountry?: string
   destinationCity?: string
+  placeId?: string
   description?: string
   isSolo: boolean
   purchaseDeadline: string
@@ -53,7 +55,6 @@ export const MAX_COST = 999999.99
 
 export const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 export const PHONE_RE = /^\+?[\d\s\-()]{4,32}$/
-export const CLABE_RE = /^\d{18}$/
 
 export function emptyDraft(): DraftTrip {
   return {
@@ -61,6 +62,7 @@ export function emptyDraft(): DraftTrip {
     destination: '',
     destinationCountry: undefined,
     destinationCity: undefined,
+    placeId: undefined,
     description: undefined,
     isSolo: false,
     purchaseDeadline: '',
@@ -249,30 +251,46 @@ const step4Schema = z
     { message: 'duplicate_phone', path: ['members'] },
   )
 
-const step5Schema = z.object({
-  skipAccount: z.boolean(),
-  account: z.object({
-    holderName: z.string().trim().max(100),
-    clabe: z.string().trim(),
-    bank: z.string().trim().max(60),
-    instructions: z.string().trim().max(500).optional(),
-  }),
-})
-  .refine(
-    ({ skipAccount, account }) =>
-      skipAccount || account.holderName.length >= 1,
-    { message: 'holder_required', path: ['account', 'holderName'] },
-  )
-  .refine(
-    ({ skipAccount, account }) =>
-      skipAccount || CLABE_RE.test(account.clabe),
-    { message: 'clabe_invalid', path: ['account', 'clabe'] },
-  )
-  .refine(
-    ({ skipAccount, account }) =>
-      skipAccount || account.bank.length >= 1,
-    { message: 'bank_required', path: ['account', 'bank'] },
-  )
+const step5Schema = z
+  .object({
+    skipAccount: z.boolean(),
+    account: z.object({
+      holderName: z.string().trim().max(100),
+      clabe: z.string().trim(),
+      bank: z.string().trim().max(60),
+      instructions: z.string().trim().max(500).optional(),
+    }),
+  })
+  .superRefine(({ skipAccount, account }, ctx) => {
+    if (skipAccount) return
+
+    if (account.holderName.length === 0) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['account', 'holderName'],
+        message: 'holder_required',
+      })
+    }
+
+    if (!validateClabe(account.clabe)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['account', 'clabe'],
+        message: 'clabe_invalid',
+      })
+      return
+    }
+
+    const resolved = resolveBankFromClabe(account.clabe)
+    const finalBank = resolved ?? account.bank
+    if (!finalBank || finalBank.trim().length === 0) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['account', 'bank'],
+        message: 'bank_required',
+      })
+    }
+  })
 
 export type StepValidation =
   | { success: true }
@@ -382,12 +400,16 @@ export function buildPayloadFromDraft(draft: DraftTrip): CreateTripBody {
         }))
       : undefined
 
+  const clabeTrimmed = draft.account.clabe.trim()
+  const resolvedBank = resolveBankFromClabe(clabeTrimmed)
+  const bankToSend = resolvedBank ?? draft.account.bank.trim()
+
   const responsibleAccountInfo =
-    !draft.skipAccount && draft.account.holderName && draft.account.clabe
+    !draft.skipAccount && draft.account.holderName && clabeTrimmed
       ? {
           holderName: draft.account.holderName.trim(),
-          clabe: draft.account.clabe.trim(),
-          bank: draft.account.bank.trim(),
+          clabe: clabeTrimmed,
+          bank: bankToSend,
           instructions: draft.account.instructions?.trim()
             ? draft.account.instructions.trim()
             : undefined,
@@ -430,15 +452,3 @@ export function pickInvitations(members: TripMember[]) {
     }))
 }
 
-export const COMMON_BANKS = [
-  'BBVA',
-  'Santander',
-  'Banorte',
-  'HSBC',
-  'Citibanamex',
-  'Scotiabank',
-  'Banco Azteca',
-  'Banregio',
-  'Inbursa',
-  'Banco del Bajío',
-] as const

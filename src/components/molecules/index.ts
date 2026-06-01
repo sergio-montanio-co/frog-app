@@ -44,3 +44,10 @@ export { CancelPlanDialog } from './CancelPlanDialog'
 export type { CancelPlanDialogProps } from './CancelPlanDialog'
 export { DeleteTripDialog } from './DeleteTripDialog'
 export type { DeleteTripDialogProps } from './DeleteTripDialog'
+export { PlaceAutocomplete } from './PlaceAutocomplete'
+export type { PlaceAutocompleteProps } from './PlaceAutocomplete'
+export { DestinationPicker } from './DestinationPicker'
+export type {
+  DestinationPickerProps,
+  DestinationValue,
+} from './DestinationPicker'

@@ -2,7 +2,7 @@ import { Switch, View } from 'react-native'
 import { useTranslation } from 'react-i18next'
 
 import { Input, Text } from '@/components/atoms'
-import { WizardStep } from '@/components/molecules'
+import { DestinationPicker, WizardStep } from '@/components/molecules'
 import { colors } from '@/theme/colors'
 
 import type { DraftTrip } from '@/lib/trips/wizard'
@@ -27,38 +27,34 @@ export function StepBasics({ draft, onChange }: StepProps) {
         autoCapitalize="sentences"
         maxLength={100}
       />
-      <Input
-        label={t('trips.new.step1.destinationLabel')}
-        placeholder={t('trips.new.step1.destinationPlaceholder')}
-        value={draft.destination}
-        onChangeText={(destination) => onChange({ ...draft, destination })}
-        autoCapitalize="sentences"
-        maxLength={200}
-        leadingIcon="place"
-      />
-      <Input
-        label={t('trips.new.step1.cityLabel')}
-        placeholder={t('trips.new.step1.cityPlaceholder')}
-        value={draft.destinationCity ?? ''}
-        onChangeText={(destinationCity) =>
-          onChange({ ...draft, destinationCity: destinationCity || undefined })
-        }
-        autoCapitalize="sentences"
-        maxLength={120}
-      />
-      <Input
-        label={t('trips.new.step1.countryLabel')}
-        placeholder={t('trips.new.step1.countryPlaceholder')}
-        value={draft.destinationCountry ?? ''}
-        onChangeText={(raw) => {
-          const code = raw.toUpperCase().slice(0, 2)
+      <DestinationPicker
+        value={{
+          destination: draft.destination,
+          destinationCity: draft.destinationCity,
+          destinationCountry: draft.destinationCountry,
+          placeId: draft.placeId,
+        }}
+        onChange={(next) =>
           onChange({
             ...draft,
-            destinationCountry: code || undefined,
+            destination: next.destination,
+            destinationCity: next.destinationCity,
+            destinationCountry: next.destinationCountry,
+            placeId: next.placeId,
           })
+        }
+        onPlaceSelected={(place) => {
+          if (!draft.name.trim()) {
+            onChange({
+              ...draft,
+              name: place.name,
+              destination: place.name,
+              destinationCity: place.city ?? undefined,
+              destinationCountry: place.countryIso2 ?? undefined,
+              placeId: place.mapboxId,
+            })
+          }
         }}
-        autoCapitalize="characters"
-        maxLength={2}
       />
       <Input
         label={t('trips.new.step1.descriptionLabel')}

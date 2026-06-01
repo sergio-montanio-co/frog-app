@@ -8,6 +8,11 @@ const schema = z.object({
     .min(1)
     .optional()
     .or(z.literal('').transform(() => undefined)),
+  EXPO_PUBLIC_MAPBOX_ACCESS_TOKEN: z
+    .string()
+    .min(1)
+    .optional()
+    .or(z.literal('').transform(() => undefined)),
 })
 
 const parsed = schema.safeParse(process.env)

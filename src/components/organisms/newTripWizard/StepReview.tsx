@@ -1,5 +1,4 @@
-import { useMemo, useState } from 'react'
-import { Pressable, Switch, View } from 'react-native'
+import { Pressable, View } from 'react-native'
 import { useTranslation } from 'react-i18next'
 
 import { Icon, Input, Text } from '@/components/atoms'
@@ -7,11 +6,7 @@ import { WizardStep } from '@/components/molecules'
 import { formatMxn } from '@/lib/money'
 import { colors } from '@/theme/colors'
 import { cn } from '@/lib/cn'
-
-import {
-  CLABE_RE,
-  COMMON_BANKS,
-} from '@/lib/trips/wizard'
+import { clabeState, resolveBankFromClabe } from '@/lib/banks'
 
 import type { StepProps } from './StepBasics'
 
@@ -33,20 +28,23 @@ function formatDate(iso: string | undefined, locale = 'es-MX'): string {
 export function StepReview({ draft, onChange, submitError }: StepReviewProps) {
   const { t } = useTranslation()
 
-  const bankInList = useMemo(
-    () => COMMON_BANKS.includes(draft.account.bank as (typeof COMMON_BANKS)[number]),
-    [draft.account.bank],
-  )
-  const [bankMode, setBankMode] = useState<'list' | 'other'>(
-    draft.account.bank && !bankInList ? 'other' : 'list',
-  )
+  const cs = clabeState(draft.account.clabe)
 
   const clabeError =
-    !draft.skipAccount &&
-    draft.account.clabe.length > 0 &&
-    !CLABE_RE.test(draft.account.clabe)
-      ? t('trips.new.step5.errors.clabe')
+    !draft.skipAccount && cs.kind === 'invalid'
+      ? t('trips.new.step5.errors.clabeInvalid')
       : undefined
+
+  const clabeHelper =
+    !draft.skipAccount && cs.kind === 'partial'
+      ? 18 - cs.digits === 1
+        ? t('trips.new.step5.clabeHelperPartialOne', { count: 1 })
+        : t('trips.new.step5.clabeHelperPartialMany', {
+            count: 18 - cs.digits,
+          })
+      : undefined
+
+  const reviewBank = resolveBankFromClabe(draft.account.clabe) ?? draft.account.bank
 
   return (
     <WizardStep
@@ -100,97 +98,59 @@ export function StepReview({ draft, onChange, submitError }: StepReviewProps) {
               label={t('trips.new.step5.clabeLabel')}
               placeholder={t('trips.new.step5.clabePlaceholder')}
               value={draft.account.clabe}
-              onChangeText={(raw) =>
+              onChangeText={(raw) => {
+                const digits = raw.replace(/\D/g, '').slice(0, 18)
                 onChange({
                   ...draft,
-                  account: {
-                    ...draft.account,
-                    clabe: raw.replace(/\D/g, '').slice(0, 18),
-                  },
+                  account: { ...draft.account, clabe: digits, bank: '' },
                 })
-              }
+              }}
               keyboardType="number-pad"
               maxLength={18}
               error={clabeError}
+              helperText={clabeHelper}
               leadingIcon="account-balance"
             />
 
-            <View className="gap-2">
-              <Text variant="body-em">{t('trips.new.step5.bankLabel')}</Text>
-              <View className="flex-row flex-wrap gap-1.5">
-                {COMMON_BANKS.map((b) => {
-                  const active = bankMode === 'list' && draft.account.bank === b
-                  return (
-                    <Pressable
-                      key={b}
-                      onPress={() => {
-                        setBankMode('list')
-                        onChange({
-                          ...draft,
-                          account: { ...draft.account, bank: b },
-                        })
-                      }}
-                      accessibilityRole="button"
-                      accessibilityLabel={b}
-                      accessibilityState={{ selected: active }}
-                      className={cn(
-                        'h-9 rounded-card px-3 items-center justify-center border-hairline',
-                        active
-                          ? 'bg-primary border-primary'
-                          : 'bg-background border-muted',
-                      )}
-                    >
-                      <Text
-                        variant="caption"
-                        tone={active ? 'background' : 'foreground'}
-                      >
-                        {b}
-                      </Text>
-                    </Pressable>
-                  )
-                })}
-                <Pressable
-                  onPress={() => {
-                    setBankMode('other')
-                    onChange({
-                      ...draft,
-                      account: { ...draft.account, bank: '' },
-                    })
-                  }}
-                  accessibilityRole="button"
-                  accessibilityLabel={t('trips.new.step5.bankOther')}
-                  accessibilityState={{ selected: bankMode === 'other' }}
-                  className={cn(
-                    'h-9 rounded-card px-3 items-center justify-center border-hairline',
-                    bankMode === 'other'
-                      ? 'bg-primary border-primary'
-                      : 'bg-background border-muted',
-                  )}
-                >
-                  <Text
-                    variant="caption"
-                    tone={bankMode === 'other' ? 'background' : 'foreground'}
-                  >
-                    {t('trips.new.step5.bankOther')}
+            {cs.kind === 'resolved' ? (
+              <View className="flex-row items-center gap-3 rounded-card bg-foreground/[0.03] p-3">
+                <Icon name="check-circle" size={20} color={colors.primary} />
+                <View className="flex-1">
+                  <Text variant="caption" tone="secondary">
+                    {t('trips.new.step5.bankLabel')}
                   </Text>
-                </Pressable>
+                  <Text variant="body-em">{cs.bank}</Text>
+                </View>
               </View>
-              {bankMode === 'other' ? (
+            ) : null}
+
+            {cs.kind === 'unknownBank' ? (
+              <View className="gap-2">
+                <View className="flex-row items-center gap-2">
+                  <Icon name="info-outline" size={16} color={colors.secondary} />
+                  <Text variant="caption" tone="secondary" className="flex-1">
+                    {t('trips.new.step5.bankNotRecognized')}
+                  </Text>
+                </View>
                 <Input
+                  label={t('trips.new.step5.bankNameLabel')}
+                  placeholder={t('trips.new.step5.bankNamePlaceholder')}
                   value={draft.account.bank}
                   onChangeText={(bank) =>
                     onChange({
                       ...draft,
-                      account: { ...draft.account, bank },
+                      account: {
+                        ...draft.account,
+                        bank: bank.slice(0, 60),
+                      },
                     })
                   }
-                  placeholder={t('trips.new.step5.bankPlaceholder')}
                   autoCapitalize="words"
                   maxLength={60}
                   leadingIcon="account-balance"
                 />
-              ) : null}
-            </View>
+              </View>
+            ) : null}
 
             <Input
               label={t('trips.new.step5.instructionsLabel')}
@@ -262,8 +222,8 @@ export function StepReview({ draft, onChange, submitError }: StepReviewProps) {
           value={
             draft.skipAccount
               ? t('trips.new.step5.summaryAccountPending')
-              : draft.account.bank
-                ? `${draft.account.bank} · ${draft.account.holderName}`
+              : reviewBank && draft.account.holderName
+                ? `${reviewBank} · ${draft.account.holderName}`
                 : t('trips.new.step5.summaryAccountPending')
           }
         />

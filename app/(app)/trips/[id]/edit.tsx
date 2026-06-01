@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState } from 'react'
 import {
   KeyboardAvoidingView,
   Platform,
-  Pressable,
   ScrollView,
   View,
 } from 'react-native'
@@ -20,7 +19,8 @@ import {
   Splash,
   Text,
 } from '@/components/atoms'
-import { cn } from '@/lib/cn'
+import { DestinationPicker } from '@/components/molecules'
+import { colors } from '@/theme/colors'
 import { parseBackendError } from '@/lib/api/errors'
 import {
   useMe,
@@ -33,7 +33,7 @@ import {
   getResponsibleAccount,
   isOrganizer,
 } from '@/lib/trips/helpers'
-import { CLABE_RE, COMMON_BANKS } from '@/lib/trips/wizard'
+import { clabeState, resolveBankFromClabe, validateClabe } from '@/lib/banks'
 
 type AccountDraft = {
   holderName: string
@@ -48,6 +48,7 @@ type EditDraft = {
   destination: string
   destinationCountry: string
   destinationCity: string
+  placeId?: string
   tripStartDate: string
   tripEndDate: string
   account: AccountDraft
@@ -80,22 +81,41 @@ const editSchema = z
       new Date(tripEndDate).getTime() > new Date(tripStartDate).getTime(),
     { message: 'end_before_start', path: ['tripEndDate'] },
   )
-  .refine(
-    ({ account }) => {
-      const partial =
-        account.holderName ||
-        account.clabe ||
-        account.bank ||
-        account.instructions
-      if (!partial) return true
-      return (
-        account.holderName.length >= 1 &&
-        account.bank.length >= 1 &&
-        CLABE_RE.test(account.clabe)
-      )
-    },
-    { message: 'account_incomplete', path: ['account'] },
-  )
+  .superRefine(({ account }, ctx) => {
+    const partial =
+      account.holderName ||
+      account.clabe ||
+      account.bank ||
+      account.instructions
+    if (!partial) return
+
+    if (account.holderName.length === 0) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['account', 'holderName'],
+        message: 'holder_required',
+      })
+    }
+
+    if (!validateClabe(account.clabe)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['account', 'clabe'],
+        message: 'clabe_invalid',
+      })
+      return
+    }
+
+    const resolved = resolveBankFromClabe(account.clabe)
+    const finalBank = resolved ?? account.bank
+    if (!finalBank || finalBank.trim().length === 0) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['account', 'bank'],
+        message: 'bank_required',
+      })
+    }
+  })
 
 function buildInitialDraft(account: AccountDraft | null, trip: {
   name: string
@@ -112,6 +132,7 @@ function buildInitialDraft(account: AccountDraft | null, trip: {
     destination: trip.destination,
     destinationCountry: trip.destinationCountry ?? '',
     destinationCity: trip.destinationCity ?? '',
+    placeId: undefined,
     tripStartDate: trip.tripStartDate ?? '',
     tripEndDate: trip.tripEndDate ?? '',
     account: account ?? {
@@ -133,7 +154,8 @@ function accountToPayload(
 ): UpdateTripBody['responsibleAccountInfo'] | undefined {
   const holderName = account.holderName.trim()
   const clabe = account.clabe.trim()
-  const bank = account.bank.trim()
+  const resolved = resolveBankFromClabe(clabe)
+  const bank = resolved ?? account.bank.trim()
   const instructions = account.instructions.trim()
   if (!holderName && !clabe && !bank && !instructions) return undefined
   if (!holderName || !clabe || !bank) return undefined
@@ -235,10 +257,18 @@ export default function EditTripScreen() {
     touched && issueMap['tripEndDate'] === 'end_before_start'
       ? t('trips.new.step2.errors.endBeforeStart')
       : undefined
+  const cs = clabeState(currentDraft.account.clabe)
   const clabeError =
-    currentDraft.account.clabe.length > 0 &&
-    !CLABE_RE.test(currentDraft.account.clabe)
-      ? t('trips.new.step5.errors.clabe')
+    cs.kind === 'invalid'
+      ? t('trips.new.step5.errors.clabeInvalid')
+      : undefined
+  const clabeHelper =
+    cs.kind === 'partial'
+      ? 18 - cs.digits === 1
+        ? t('trips.new.step5.clabeHelperPartialOne', { count: 1 })
+        : t('trips.new.step5.clabeHelperPartialMany', {
+            count: 18 - cs.digits,
+          })
       : undefined
 
   async function onSubmit() {
@@ -343,27 +373,24 @@ export default function EditTripScreen() {
           </Section>
 
           <Section title={t('trips.edit.section.destination')}>
-            <Input
-              label={t('trips.new.step1.destinationLabel')}
-              value={currentDraft.destination}
-              onChangeText={(v) => updateField('destination', v)}
-              maxLength={200}
-              leadingIcon="place"
-            />
-            <Input
-              label={t('trips.new.step1.cityLabel')}
-              value={currentDraft.destinationCity}
-              onChangeText={(v) => updateField('destinationCity', v)}
-              maxLength={120}
-            />
-            <Input
-              label={t('trips.new.step1.countryLabel')}
-              value={currentDraft.destinationCountry}
-              onChangeText={(v) =>
-                updateField('destinationCountry', v.toUpperCase().slice(0, 2))
-              }
-              maxLength={2}
-              autoCapitalize="characters"
+            <DestinationPicker
+              value={{
+                destination: currentDraft.destination,
+                destinationCity: currentDraft.destinationCity || undefined,
+                destinationCountry:
+                  currentDraft.destinationCountry || undefined,
+                placeId: currentDraft.placeId,
+              }}
+              onChange={(next) => {
+                setDraft({
+                  ...(currentDraft as EditDraft),
+                  destination: next.destination,
+                  destinationCity: next.destinationCity ?? '',
+                  destinationCountry: next.destinationCountry ?? '',
+                  placeId: next.placeId,
+                })
+                setSubmitError(null)
+              }}
             />
           </Section>
 
@@ -395,41 +422,56 @@ export default function EditTripScreen() {
               label={t('trips.new.step5.clabeLabel')}
               placeholder={t('trips.new.step5.clabePlaceholder')}
               value={currentDraft.account.clabe}
-              onChangeText={(raw) =>
-                updateAccount('clabe', raw.replace(/\D/g, '').slice(0, 18))
-              }
+              onChangeText={(raw) => {
+                const digits = raw.replace(/\D/g, '').slice(0, 18)
+                setDraft({
+                  ...(currentDraft as EditDraft),
+                  account: {
+                    ...(currentDraft as EditDraft).account,
+                    clabe: digits,
+                    bank: '',
+                  },
+                })
+                setSubmitError(null)
+              }}
               keyboardType="number-pad"
               maxLength={18}
               error={clabeError}
+              helperText={clabeHelper}
               leadingIcon="account-balance"
             />
 
-            <View className="gap-2">
-              <Text variant="body-em">
-                {t('trips.new.step5.bankLabel')}
-              </Text>
-              <View className="flex-row flex-wrap gap-1.5">
-                {COMMON_BANKS.map((b) => {
-                  const active = currentDraft.account.bank === b
-                  return (
-                    <BankPill
-                      key={b}
-                      label={b}
-                      active={active}
-                      onPress={() => updateAccount('bank', b)}
-                    />
-                  )
-                })}
+            {cs.kind === 'resolved' ? (
+              <View className="flex-row items-center gap-3 rounded-card bg-foreground/[0.03] p-3">
+                <Icon name="check-circle" size={20} color={colors.primary} />
+                <View className="flex-1">
+                  <Text variant="caption" tone="secondary">
+                    {t('trips.new.step5.bankLabel')}
+                  </Text>
+                  <Text variant="body-em">{cs.bank}</Text>
+                </View>
               </View>
-              <Input
-                value={currentDraft.account.bank}
-                onChangeText={(v) => updateAccount('bank', v)}
-                placeholder={t('trips.new.step5.bankPlaceholder')}
-                autoCapitalize="words"
-                maxLength={60}
-                leadingIcon="account-balance"
-              />
-            </View>
+            ) : null}
+
+            {cs.kind === 'unknownBank' ? (
+              <View className="gap-2">
+                <View className="flex-row items-center gap-2">
+                  <Icon name="info-outline" size={16} color={colors.secondary} />
+                  <Text variant="caption" tone="secondary" className="flex-1">
+                    {t('trips.new.step5.bankNotRecognized')}
+                  </Text>
+                </View>
+                <Input
+                  label={t('trips.new.step5.bankNameLabel')}
+                  placeholder={t('trips.new.step5.bankNamePlaceholder')}
+                  value={currentDraft.account.bank}
+                  onChangeText={(v) => updateAccount('bank', v.slice(0, 60))}
+                  autoCapitalize="words"
+                  maxLength={60}
+                  leadingIcon="account-balance"
+                />
+              </View>
+            ) : null}
 
             <Input
               label={t('trips.new.step5.instructionsLabel')}
@@ -502,32 +544,3 @@ function Section({
   )
 }
 
-function BankPill({
-  label,
-  active,
-  onPress,
-}: {
-  label: string
-  active: boolean
-  onPress: () => void
-}) {
-  return (
-    <Pressable
-      onPress={onPress}
-      accessibilityRole="button"
-      accessibilityLabel={label}
-      accessibilityState={{ selected: active }}
-      className={cn(
-        'h-9 rounded-card px-3 items-center justify-center border-hairline',
-        active ? 'bg-primary border-primary' : 'bg-background border-muted',
-      )}
-    >
-      <Text
-        variant="caption"
-        tone={active ? 'background' : 'foreground'}
-      >
-        {label}
-      </Text>
-    </Pressable>
-  )
-}

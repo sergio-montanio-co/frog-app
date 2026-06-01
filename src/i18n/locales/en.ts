@@ -381,8 +381,12 @@ export const en: TranslationSchema = {
         subtitle: 'Tell the group where you are going.',
         nameLabel: 'Trip name',
         namePlaceholder: 'Cancun all-inclusive',
-        destinationLabel: 'Destination',
-        destinationPlaceholder: 'Cancun, Quintana Roo',
+        destinationLabel: 'Where are you going?',
+        destinationPlaceholderAuto: 'Hotel, city or attraction…',
+        destinationPlaceholderManual: 'Place or address',
+        destinationHelpAuto: 'Search by hotel name or city.',
+        selectedPlace: 'Destination',
+        backToAuto: 'Search on the map',
         cityLabel: 'City',
         cityPlaceholder: 'Cancun',
         countryLabel: 'Country (2-letter code)',
@@ -466,9 +470,12 @@ export const en: TranslationSchema = {
         holderPlaceholder: 'Full name',
         clabeLabel: 'CLABE',
         clabePlaceholder: '18 digits',
+        clabeHelperPartialOne: '{{count}} digit left (of 18).',
+        clabeHelperPartialMany: '{{count}} digits left (of 18).',
         bankLabel: 'Bank',
-        bankPlaceholder: 'Bank name',
-        bankOther: 'Other',
+        bankNotRecognized: "We couldn't identify the bank. Type it in.",
+        bankNameLabel: 'Bank name',
+        bankNamePlaceholder: 'Your bank',
         instructionsLabel: 'Instructions for members',
         instructionsPlaceholder:
           'Send the reference with your full name, for example.',
@@ -485,8 +492,8 @@ export const en: TranslationSchema = {
         summaryAccountPending: 'Pending to configure',
         errors: {
           holder: "Type the holder's name.",
-          clabe: 'CLABE must be 18 digits.',
-          bank: 'Pick a bank.',
+          clabeInvalid: 'Invalid CLABE. Double-check the digits with your bank.',
+          bank: 'Type the bank name.',
         },
       },
       created: {
@@ -726,5 +733,10 @@ export const en: TranslationSchema = {
   notFound: {
     title: 'Screen not found',
     goHome: 'Back to home',
+  },
+  places: {
+    searching: 'Searching places…',
+    notFound: "I can't find my place",
+    clear: 'Clear search',
   },
 }

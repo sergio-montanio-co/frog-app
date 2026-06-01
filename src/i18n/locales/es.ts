@@ -386,8 +386,12 @@ const esStrict = {
         subtitle: 'Cuéntale al grupo a dónde van.',
         nameLabel: 'Nombre del viaje',
         namePlaceholder: 'Cancún todo incluido',
-        destinationLabel: 'Destino',
-        destinationPlaceholder: 'Cancún, Quintana Roo',
+        destinationLabel: '¿A dónde van?',
+        destinationPlaceholderAuto: 'Hotel, ciudad o atracción…',
+        destinationPlaceholderManual: 'Lugar o dirección',
+        destinationHelpAuto: 'Busca por nombre del hotel o ciudad.',
+        selectedPlace: 'Destino',
+        backToAuto: 'Buscar en el mapa',
         cityLabel: 'Ciudad',
         cityPlaceholder: 'Cancún',
         countryLabel: 'País (código de 2 letras)',
@@ -472,9 +476,12 @@ const esStrict = {
         holderPlaceholder: 'Nombre completo',
         clabeLabel: 'CLABE',
         clabePlaceholder: '18 dígitos',
+        clabeHelperPartialOne: 'Falta {{count}} dígito (de 18).',
+        clabeHelperPartialMany: 'Faltan {{count}} dígitos (de 18).',
         bankLabel: 'Banco',
-        bankPlaceholder: 'Nombre del banco',
-        bankOther: 'Otro',
+        bankNotRecognized: 'No reconocimos el banco. Indícalo manualmente.',
+        bankNameLabel: 'Nombre del banco',
+        bankNamePlaceholder: 'Cómo se llama tu banco',
         instructionsLabel: 'Instrucciones para los miembros',
         instructionsPlaceholder:
           'Manda referencia con tu nombre completo, por ejemplo.',
@@ -491,8 +498,9 @@ const esStrict = {
         summaryAccountPending: 'Pendiente por configurar',
         errors: {
           holder: 'Escribe el nombre del titular.',
-          clabe: 'La CLABE debe ser de 18 dígitos.',
-          bank: 'Selecciona un banco.',
+          clabeInvalid:
+            'CLABE inválida. Verifica los dígitos con tu banco.',
+          bank: 'Indica el nombre del banco.',
         },
       },
       created: {
@@ -733,6 +741,11 @@ const esStrict = {
   notFound: {
     title: 'Pantalla no encontrada',
     goHome: 'Volver al inicio',
+  },
+  places: {
+    searching: 'Buscando lugares…',
+    notFound: 'No encuentro mi lugar',
+    clear: 'Limpiar búsqueda',
   },
 } as const
 
