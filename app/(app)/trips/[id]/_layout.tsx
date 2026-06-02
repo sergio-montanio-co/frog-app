@@ -18,7 +18,7 @@ export default function TripLayout() {
           animation: 'slide_from_bottom',
         }}
       />
-      <Stack.Screen name="invitations-created" />
+      <Stack.Screen name="join-requests" />
       <Stack.Screen
         name="edit"
         options={{

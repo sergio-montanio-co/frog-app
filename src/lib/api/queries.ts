@@ -1,4 +1,3 @@
-import { useMemo } from 'react'
 import {
   useInfiniteQuery,
   useMutation,
@@ -6,7 +5,7 @@ import {
   useQueryClient,
 } from '@tanstack/react-query'
 
-import { createPublicClient, useApiClient, ApiError } from './client'
+import { useApiClient, ApiError } from './client'
 import type { components } from './schema.gen'
 
 export type UserDto = components['schemas']['UserDto']
@@ -41,12 +40,17 @@ export type ContributionListResponse =
 export type RejectContributionBody =
   components['schemas']['RejectContributionDto']
 export type ResponsibleAccount = components['schemas']['ResponsibleAccountDto']
-export type InvitationDto = components['schemas']['InvitationDto']
-export type InvitationPreviewDto = components['schemas']['InvitationPreviewDto']
-export type InvitationPreviewTripDto =
-  components['schemas']['InvitationPreviewTripDto']
-export type ResendInvitationResponseDto =
-  components['schemas']['ResendInvitationResponseDto']
+export type TripPreviewByCodeDto =
+  components['schemas']['TripPreviewByCodeDto']
+export type TripPreviewByCodeTripDto =
+  components['schemas']['TripPreviewByCodeTripDto']
+export type JoinRequestDto = components['schemas']['JoinRequestDto']
+export type JoinRequestUserDto = components['schemas']['JoinRequestUserDto']
+export type JoinRequestListResponseDto =
+  components['schemas']['JoinRequestListResponseDto']
+export type JoinRequestPreviewStatus = TripPreviewByCodeDto['requestStatus']
+export type JoinRequestStatus = JoinRequestDto['status']
+export type JoinRequestListStatus = 'pending' | 'approved' | 'rejected'
 export type NotificationDto = components['schemas']['NotificationDto']
 export type NotificationListResponse =
   components['schemas']['NotificationListResponse']
@@ -364,39 +368,6 @@ export function useCreateSavingsPlan(tripId: string) {
   })
 }
 
-export function useInvitationPreview(token: string | undefined) {
-  const publicClient = useMemo(() => createPublicClient(), [])
-  return useQuery({
-    enabled: Boolean(token),
-    retry: false,
-    queryKey: ['invitation', token] as const,
-    queryFn: () =>
-      publicClient
-        .GET('/invitations/{token}', {
-          params: { path: { token: token as string } },
-        })
-        .then(unwrap),
-  })
-}
-
-export function useAcceptInvitation() {
-  const client = useApiClient()
-  const qc = useQueryClient()
-  return useMutation({
-    mutationFn: (token: string) =>
-      client
-        .POST('/invitations/{token}/accept', {
-          params: { path: { token } },
-        })
-        .then(unwrap),
-    onSuccess: (trip, token) => {
-      qc.setQueryData(['trip', trip.id], trip)
-      qc.invalidateQueries({ queryKey: ['trips'] })
-      qc.invalidateQueries({ queryKey: ['invitation', token] })
-    },
-  })
-}
-
 export function useNotifications() {
   const client = useApiClient()
   return useInfiniteQuery({
@@ -406,7 +377,9 @@ export function useNotifications() {
       client
         .GET('/me/notifications', {
           params: {
-            query: { channel: 'push', limit: 30, cursor: pageParam },
+            // El feed in-app es su propio canal lógico (body corto, sin
+            // links). Emails y push externos no se muestran aquí.
+            query: { channel: 'in_app', limit: 30, cursor: pageParam },
           },
         })
         .then(unwrap),
@@ -625,18 +598,113 @@ export function useDeleteTrip() {
   })
 }
 
-export function useResendInvitation(tripId: string) {
+export function normalizeInviteCode(raw: string): string {
+  return raw.replace(/[\s-]/g, '').toUpperCase()
+}
+
+export function useTripByCode(
+  code: string,
+  opts?: { enabled?: boolean },
+) {
+  const client = useApiClient()
+  const normalized = normalizeInviteCode(code)
+  return useQuery({
+    enabled: (opts?.enabled ?? true) && normalized.length >= 6,
+    retry: false,
+    queryKey: ['trip-by-code', normalized] as const,
+    queryFn: () =>
+      client
+        .GET('/trips/by-code/{code}', {
+          params: { path: { code: normalized } },
+        })
+        .then(unwrap),
+  })
+}
+
+export function useRequestJoin() {
   const client = useApiClient()
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: (invId: string) =>
+    mutationFn: ({
+      code,
+      message,
+    }: {
+      code: string
+      message?: string
+    }) =>
       client
-        .POST('/trips/{tripId}/invitations/{invId}/resend', {
-          params: { path: { tripId, invId } },
+        .POST('/trips/by-code/{code}/request-join', {
+          params: { path: { code: normalizeInviteCode(code) } },
+          body: { message },
+        })
+        .then(unwrap),
+    onSuccess: (_, vars) => {
+      qc.invalidateQueries({
+        queryKey: ['trip-by-code', normalizeInviteCode(vars.code)],
+      })
+      qc.invalidateQueries({ queryKey: ['trips'] })
+    },
+  })
+}
+
+export function useJoinRequests(
+  tripId: string | undefined,
+  opts?: { enabled?: boolean; status?: JoinRequestListStatus },
+) {
+  const client = useApiClient()
+  const status = opts?.status ?? 'pending'
+  return useQuery({
+    enabled: (opts?.enabled ?? true) && Boolean(tripId),
+    queryKey: ['trip', tripId, 'join-requests', status] as const,
+    queryFn: () =>
+      client
+        .GET('/trips/{tripId}/join-requests', {
+          params: {
+            path: { tripId: tripId as string },
+            query: { status },
+          },
+        })
+        .then(unwrap),
+  })
+}
+
+export function useApproveJoinRequest(tripId: string) {
+  const client = useApiClient()
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (requestId: string) =>
+      client
+        .POST('/join-requests/{requestId}/approve', {
+          params: { path: { requestId } },
         })
         .then(unwrap),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['trip', tripId] })
+      qc.invalidateQueries({ queryKey: ['trip', tripId, 'join-requests'] })
+      qc.invalidateQueries({ queryKey: ['trips'] })
+    },
+  })
+}
+
+export function useRejectJoinRequest(tripId: string) {
+  const client = useApiClient()
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({
+      requestId,
+      reason,
+    }: {
+      requestId: string
+      reason?: string
+    }) =>
+      client
+        .POST('/join-requests/{requestId}/reject', {
+          params: { path: { requestId } },
+          body: { reason },
+        })
+        .then(unwrap),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['trip', tripId, 'join-requests'] })
     },
   })
 }

@@ -36,6 +36,3 @@ export function useApiClient(): ApiClient {
   }, [getToken])
 }
 
-export function createPublicClient(): ApiClient {
-  return createClient<paths>({ baseUrl: env.EXPO_PUBLIC_API_BASE_URL })
-}

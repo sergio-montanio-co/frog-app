@@ -5,13 +5,13 @@ import { useRouter } from 'expo-router'
 import { useTranslation } from 'react-i18next'
 
 import {
-  Button,
   EmptyState,
   ErrorState,
   LoadingSkeleton,
   Text,
   TogglePill,
 } from '@/components/atoms'
+import { SpeedDialFab } from '@/components/molecules'
 import { TripCard } from '@/components/molecules/TripCard'
 import { useTrips, type TripsTab } from '@/lib/api/queries'
 import { colors } from '@/theme/colors'
@@ -81,12 +81,24 @@ export default function MyTripsScreen() {
         </View>
       </View>
 
-      <View className="absolute bottom-6 left-4 right-4">
-        <Button
-          label={t('trips.newTrip')}
-          onPress={() => router.push('/trips/new')}
-        />
-      </View>
+      <SpeedDialFab
+        openLabel={t('trips.fabOpen')}
+        closeLabel={t('trips.fabClose')}
+        actions={[
+          {
+            key: 'new',
+            label: t('trips.newTrip'),
+            icon: 'flight-takeoff',
+            onPress: () => router.push('/trips/new'),
+          },
+          {
+            key: 'join',
+            label: t('trips.joinCta'),
+            icon: 'key',
+            onPress: () => router.push('/(app)/trips/join-with-code'),
+          },
+        ]}
+      />
     </SafeAreaView>
   )
 }

@@ -213,6 +213,57 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/trips/by-code/{code}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Preview de un viaje a partir del código de invitación */
+        get: operations["TripsController_previewByCode"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/trips/by-code/{code}/request-join": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Solicita unirse a un viaje usando el código de invitación */
+        post: operations["TripsController_requestJoinByCode"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/trips/{tripId}/join-requests": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Lista las solicitudes de unión del viaje (sólo organizador) */
+        get: operations["TripsController_listJoinRequests"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/trips/{id}": {
         parameters: {
             query?: never;
@@ -331,6 +382,40 @@ export interface paths {
         put?: never;
         /** El organizador rechaza la contribución con razón obligatoria */
         post: operations["ContributionsController_reject"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/join-requests/{requestId}/approve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Aprueba una solicitud de unión (sólo organizador del viaje) */
+        post: operations["JoinRequestsController_approve"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/join-requests/{requestId}/reject": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Rechaza una solicitud de unión (sólo organizador del viaje) */
+        post: operations["JoinRequestsController_reject"];
         delete?: never;
         options?: never;
         head?: never;
@@ -573,7 +658,7 @@ export interface components {
             /** Format: uuid */
             id: string;
             /** @enum {string} */
-            channel: "email" | "whatsapp" | "push" | "sms";
+            channel: "email" | "whatsapp" | "push" | "sms" | "in_app";
             /** @example contribution_confirmed */
             templateKey: string;
             subject: string | null;
@@ -866,6 +951,11 @@ export interface components {
             description: string | null;
             coverImageUrl: string | null;
             isSolo: boolean;
+            /**
+             * @description Código compartible para que otros usuarios se unan al viaje
+             * @example A8K2NP
+             */
+            inviteCode: string;
             /** Format: date-time */
             tripStartDate: string | null;
             /** Format: date-time */
@@ -935,6 +1025,11 @@ export interface components {
             estimatedCostPerPerson: string;
             currency: string;
             isSolo: boolean;
+            /**
+             * @description Código compartible del viaje
+             * @example A8K2NP
+             */
+            inviteCode: string;
             membersCount: number;
             progress: components["schemas"]["TripProgressDto"];
             activeSavingsPlan: components["schemas"]["ActiveSavingsPlanSummaryDto"] | null;
@@ -944,6 +1039,61 @@ export interface components {
         TripListResponseDto: {
             items: components["schemas"]["TripListItemDto"][];
             nextCursor?: string | null;
+        };
+        TripPreviewByCodeTripDto: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            destination: string;
+            /** @example 12500.00 */
+            estimatedCostPerPerson: string;
+            currency: string;
+            /** Format: date-time */
+            purchaseDeadline: string;
+            membersCount: number;
+            organizerDisplayName: string | null;
+            isSolo: boolean;
+            inviteCode: string;
+        };
+        TripPreviewByCodeDto: {
+            trip: components["schemas"]["TripPreviewByCodeTripDto"];
+            /**
+             * @description Estado del usuario actual respecto al viaje: si ya es miembro, si tiene solicitud pendiente, si puede solicitar, si es el propio organizer, o si es un trip solo
+             * @enum {string}
+             */
+            requestStatus: "can_request" | "pending" | "already_member" | "organizer" | "solo";
+        };
+        RequestJoinDto: {
+            /** @description Mensaje opcional para el organizador */
+            message?: string;
+        };
+        JoinRequestUserDto: {
+            /** Format: uuid */
+            id: string;
+            displayName: string | null;
+            avatarUrl: string | null;
+            email: string | null;
+        };
+        JoinRequestDto: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            tripId: string;
+            /** Format: uuid */
+            userId: string;
+            /** @enum {string} */
+            status: "pending" | "approved" | "rejected" | "cancelled";
+            message: string | null;
+            rejectionReason: string | null;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            processedAt: string | null;
+            /** @description Datos del solicitante (incluido sólo en listados del organizer) */
+            user?: components["schemas"]["JoinRequestUserDto"];
+        };
+        JoinRequestListResponseDto: {
+            items: components["schemas"]["JoinRequestDto"][];
         };
         UpdateTripDto: {
             /** @example Cancún todo incluido (renombrado) */
@@ -1034,6 +1184,10 @@ export interface components {
         RejectContributionDto: {
             /** @example No vimos el SPEI en la cuenta, ¿puedes reenviar comprobante? */
             reason: string;
+        };
+        RejectJoinRequestDto: {
+            /** @description Razón opcional (la verá el solicitante) */
+            reason?: string;
         };
         CreateSavingsPlanDto: {
             /** @enum {string} */
@@ -1278,7 +1432,7 @@ export interface operations {
     MeNotificationsController_list: {
         parameters: {
             query?: {
-                channel?: "email" | "whatsapp" | "push" | "sms";
+                channel?: "email" | "whatsapp" | "push" | "sms" | "in_app";
                 status?: "queued" | "sent" | "delivered" | "read" | "failed";
                 /** @description Tamaño de página (1-100). Default 20. */
                 limit?: number;
@@ -1576,6 +1730,106 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["TripDto"];
                 };
+            };
+        };
+    };
+    TripsController_previewByCode: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Código compartido por el organizador */
+                code: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TripPreviewByCodeDto"];
+                };
+            };
+            /** @description Código no encontrado */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    TripsController_requestJoinByCode: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Código del viaje */
+                code: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RequestJoinDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["JoinRequestDto"];
+                };
+            };
+            /** @description Código no encontrado */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Ya formas parte del viaje o el viaje no admite invitados */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    TripsController_listJoinRequests: {
+        parameters: {
+            query?: {
+                status?: "pending" | "approved" | "rejected";
+            };
+            header?: never;
+            path: {
+                /** @description UUID del viaje */
+                tripId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["JoinRequestListResponseDto"];
+                };
+            };
+            /** @description Sólo el organizador puede ver la cola */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };
@@ -1984,6 +2238,82 @@ export interface operations {
                 content?: never;
             };
             /** @description Transición de estado inválida */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    JoinRequestsController_approve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description UUID de la solicitud */
+                requestId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["JoinRequestDto"];
+                };
+            };
+            /** @description Solicitud no encontrada */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description La solicitud ya fue procesada */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    JoinRequestsController_reject: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description UUID de la solicitud */
+                requestId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RejectJoinRequestDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["JoinRequestDto"];
+                };
+            };
+            /** @description Solicitud no encontrada */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description La solicitud ya fue procesada */
             409: {
                 headers: {
                     [name: string]: unknown;

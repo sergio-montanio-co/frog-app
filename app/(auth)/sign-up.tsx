@@ -38,6 +38,8 @@ export default function SignUpScreen() {
   const [stage, setStage] = useState<Stage>('form')
   const [email, setEmail] = useState('')
   const [submitError, setSubmitError] = useState<string | null>(null)
+  const [resendBusy, setResendBusy] = useState(false)
+  const [resendFeedback, setResendFeedback] = useState<string | null>(null)
 
   const form = useForm<SignUpForm>({
     resolver: zodResolver(formSchema),
@@ -77,6 +79,7 @@ export default function SignUpScreen() {
   async function onVerify(values: CodeForm) {
     if (!isLoaded) return
     setSubmitError(null)
+    setResendFeedback(null)
     try {
       const result = await signUp.attemptEmailAddressVerification({
         code: values.code,
@@ -94,18 +97,65 @@ export default function SignUpScreen() {
         } else {
           router.replace('/(app)/(tabs)')
         }
-      } else {
-        setSubmitError(t('auth.errors.genericVerify'))
+        return
       }
+      // El email verificó OK pero Clerk sigue pidiendo algo (password,
+      // last_name, phone, etc. según la config del instance).
+      const missing = [
+        ...(result.missingFields ?? []),
+        ...(result.unverifiedFields ?? []),
+      ]
+      console.warn('sign-up not complete', {
+        status: result.status,
+        missingFields: result.missingFields,
+        unverifiedFields: result.unverifiedFields,
+      })
+      setSubmitError(
+        missing.length > 0
+          ? t('auth.errors.signUpMissingFields', {
+              fields: missing.join(', '),
+            })
+          : t('auth.errors.signUpIncomplete'),
+      )
     } catch (err) {
       const code = firstClerkErrorCode(err)
-      if (code === 'form_code_incorrect') {
+      if (code === 'form_code_incorrect' || code === 'verification_failed') {
         setSubmitError(t('auth.errors.invalidCode'))
+      } else if (
+        code === 'verification_expired' ||
+        code === 'verification_already_verified'
+      ) {
+        setSubmitError(t('auth.errors.genericVerify'))
       } else if (code === 'too_many_requests') {
         setSubmitError(t('auth.errors.rateLimited'))
       } else {
+        console.warn('sign-up verify error', err)
         setSubmitError(t('auth.errors.genericVerify'))
       }
+    }
+  }
+
+  async function onResend() {
+    if (!isLoaded) return
+    setSubmitError(null)
+    setResendFeedback(null)
+    setResendBusy(true)
+    try {
+      await signUp.prepareEmailAddressVerification({ strategy: 'email_code' })
+      codeForm.reset({ code: '' })
+      setResendFeedback(t('auth.signUp.codeResent'))
+    } catch (err) {
+      const code = firstClerkErrorCode(err)
+      if (code === 'verification_already_verified') {
+        setSubmitError(t('auth.errors.emailAlreadyVerified'))
+      } else if (code === 'too_many_requests') {
+        setSubmitError(t('auth.errors.rateLimited'))
+      } else {
+        console.warn('sign-up resend error', err)
+        setSubmitError(t('auth.errors.resendGeneric'))
+      }
+    } finally {
+      setResendBusy(false)
     }
   }
 
@@ -205,11 +255,23 @@ export default function SignUpScreen() {
                 loading={codeForm.formState.isSubmitting}
               />
               <Button
+                label={t('auth.signUp.resendCode')}
+                variant="secondary"
+                onPress={onResend}
+                loading={resendBusy}
+              />
+              {resendFeedback ? (
+                <Text variant="caption" tone="secondary">
+                  {resendFeedback}
+                </Text>
+              ) : null}
+              <Button
                 label={t('auth.signUp.changeEmail')}
                 variant="ghost"
                 onPress={() => {
                   codeForm.reset({ code: '' })
                   setSubmitError(null)
+                  setResendFeedback(null)
                   setStage('form')
                 }}
               />

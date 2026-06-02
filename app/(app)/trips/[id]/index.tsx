@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Modal, Pressable, RefreshControl, ScrollView, View } from 'react-native'
+import { Modal, Pressable, RefreshControl, Share, ScrollView, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
+import * as Clipboard from 'expo-clipboard'
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import { useTranslation } from 'react-i18next'
 
@@ -21,8 +22,6 @@ import {
   CancelPlanDialog,
   Countdown,
   DeleteTripDialog,
-  InvitedMemberRow,
-  InviteLateDialog,
   MemberStatusRow,
   PlanSummaryCard,
   ReleaseDialog,
@@ -32,6 +31,7 @@ import { colors } from '@/theme/colors'
 import { parseBackendError } from '@/lib/api/errors'
 import { formatMxn } from '@/lib/money'
 import {
+  useJoinRequests,
   useLeaveTrip,
   useMarkAllNotificationsRead,
   useMe,
@@ -94,12 +94,15 @@ export default function TripDashboard() {
     enabled: Boolean(id) && meIsOrganizerEarly,
   })
   const pendingCount = pending.data?.items.length ?? 0
+  const joinRequests = useJoinRequests(id, {
+    enabled: Boolean(id) && meIsOrganizerEarly && trip.data?.isSolo === false,
+  })
+  const joinRequestsCount = joinRequests.data?.items.length ?? 0
   const purchaseReady = trip.data?.status === 'purchase_ready'
   const cancelled = trip.data?.status === 'cancelled'
 
   const [releaseOpen, setReleaseOpen] = useState(false)
   const [leaveOpen, setLeaveOpen] = useState(false)
-  const [inviteOpen, setInviteOpen] = useState(false)
   const [cancelPlanOpen, setCancelPlanOpen] = useState(false)
   const [deleteTripOpen, setDeleteTripOpen] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
@@ -341,11 +344,12 @@ export default function TripDashboard() {
               />
             ) : null}
             {userIsOrganizer && !trip.data.isSolo ? (
-              <PendingInvitesSection
+              <InviteCodeSection trip={trip.data} />
+            ) : null}
+            {userIsOrganizer && !trip.data.isSolo && joinRequestsCount > 0 ? (
+              <JoinRequestsSection
                 tripId={trip.data.id}
-                tripName={trip.data.name}
-                members={trip.data.members}
-                onInvite={() => setInviteOpen(true)}
+                count={joinRequestsCount}
               />
             ) : null}
             {userIsOrganizer && !purchaseReady && !cancelled ? (
@@ -390,14 +394,6 @@ export default function TripDashboard() {
               params: { id: trip.data.id },
             })
           }
-        />
-      ) : null}
-
-      {userIsOrganizer ? (
-        <InviteLateDialog
-          open={inviteOpen}
-          tripId={trip.data.id}
-          onClose={() => setInviteOpen(false)}
         />
       ) : null}
 
@@ -822,57 +818,95 @@ function PlanEmptyStateMember() {
   )
 }
 
-function PendingInvitesSection({
-  tripId,
-  tripName,
-  members,
-  onInvite,
-}: {
-  tripId: string
-  tripName: string
-  members: TripMember[]
-  onInvite: () => void
-}) {
+function InviteCodeSection({ trip }: { trip: TripDto }) {
   const { t } = useTranslation()
-  const pending = useMemo(
-    () =>
-      members.filter(
-        (m) =>
-          m.status === 'invited' &&
-          m.invitation != null &&
-          !m.invitation.isAccepted,
-      ),
-    [members],
-  )
+  const [feedback, setFeedback] = useState<string | null>(null)
+
+  async function onCopy() {
+    await Clipboard.setStringAsync(trip.inviteCode)
+    setFeedback(t('common.copied'))
+    setTimeout(() => setFeedback(null), 1500)
+  }
+
+  async function onShare() {
+    await Share.share({
+      message: t('trips.dashboard.inviteCode.shareTemplate', {
+        tripName: trip.name,
+        code: trip.inviteCode,
+      }),
+    })
+  }
 
   return (
     <Card className="gap-3">
       <View className="flex-row items-center gap-2">
-        <Icon name="mail-outline" size={20} color={colors.primary} />
-        <Text variant="title">{t('trips.invitedMembers.title')}</Text>
+        <Icon name="qr-code" size={20} color={colors.primary} />
+        <Text variant="title">{t('trips.dashboard.inviteCode.title')}</Text>
       </View>
-      {pending.length > 0 ? (
-        <>
-          <Text variant="caption" tone="secondary">
-            {t('trips.invitedMembers.subtitle')}
-          </Text>
-          {pending.map((m, idx) => (
-            <View key={m.id} className="gap-3">
-              {idx > 0 ? <Divider /> : null}
-              <InvitedMemberRow
-                member={m}
-                invitation={m.invitation!}
-                tripId={tripId}
-                tripName={tripName}
-              />
-            </View>
-          ))}
-        </>
-      ) : null}
+      <Text variant="caption" tone="secondary">
+        {t('trips.dashboard.inviteCode.subtitle')}
+      </Text>
+
+      <View className="flex-row items-center gap-3 rounded-card border-hairline border-muted p-4">
+        <Text
+          variant="display"
+          className="flex-1 tracking-widest"
+          selectable
+        >
+          {trip.inviteCode}
+        </Text>
+        <IconButton
+          name={feedback ? 'check' : 'content-copy'}
+          variant="ghost"
+          accessibilityLabel={t('trips.dashboard.inviteCode.copyLabel')}
+          onPress={onCopy}
+        />
+      </View>
+
       <Button
-        label={t('trips.admin.inviteLate.cta')}
+        label={t('trips.dashboard.inviteCode.share')}
         variant="secondary"
-        onPress={onInvite}
+        onPress={onShare}
+      />
+    </Card>
+  )
+}
+
+function JoinRequestsSection({
+  tripId,
+  count,
+}: {
+  tripId: string
+  count: number
+}) {
+  const { t } = useTranslation()
+  const router = useRouter()
+  const bodyKey =
+    count === 1
+      ? 'trips.dashboard.joinRequests.body.one'
+      : 'trips.dashboard.joinRequests.body.other'
+
+  return (
+    <Card className="gap-3">
+      <View className="flex-row items-center gap-2">
+        <Icon name="person-add" size={20} color={colors.primary} />
+        <Text variant="title">
+          {t('trips.dashboard.joinRequests.title')}
+        </Text>
+        <Badge tone="primary" label={String(count)} />
+      </View>
+      <Text variant="body" tone="secondary">
+        {t(bodyKey, { count })}
+      </Text>
+      <Button
+        label={t('trips.dashboard.joinRequests.review')}
+        variant="primary"
+        onPress={() =>
+          router.push({
+            pathname: '/trips/[id]/join-requests',
+            params: { id: tripId },
+          })
+        }
       />
     </Card>
   )

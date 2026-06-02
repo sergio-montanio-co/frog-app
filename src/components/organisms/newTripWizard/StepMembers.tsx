@@ -92,6 +92,10 @@ export function StepMembers({ draft, onChange }: StepProps) {
           })
         }
       />
+
+      <Text variant="caption" tone="secondary">
+        {t('trips.new.step4.helper')}
+      </Text>
     </WizardStep>
   )
 }

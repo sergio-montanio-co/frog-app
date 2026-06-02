@@ -88,7 +88,7 @@ export default function NewTripScreen() {
     try {
       const trip = await create.mutateAsync(buildPayloadFromDraft(draft))
       router.replace({
-        pathname: '/trips/[id]/invitations-created',
+        pathname: '/trips/[id]',
         params: { id: trip.id },
       })
     } catch (err) {

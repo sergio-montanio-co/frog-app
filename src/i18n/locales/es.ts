@@ -54,6 +54,8 @@ const esStrict = {
       codeHelper: 'Lo encuentras en el correo que acabas de recibir.',
       codeSubmit: 'Verificar',
       changeEmail: 'Cambiar correo',
+      resendCode: 'Reenviar código',
+      codeResent: 'Te enviamos un código nuevo.',
       hasAccount: '¿Ya tienes cuenta?',
       goToSignIn: 'Iniciar sesión',
     },
@@ -65,6 +67,13 @@ const esStrict = {
       identifierNotFound: 'No encontramos esta cuenta.',
       identifierExists: 'Ya existe una cuenta con este correo.',
       rateLimited: 'Demasiados intentos. Espera un momento.',
+      signUpMissingFields:
+        'Falta completar: {{fields}}. Actualiza la configuración de Clerk o vuelve a empezar.',
+      signUpIncomplete:
+        'El registro quedó incompleto. Intenta de nuevo o contacta a soporte.',
+      resendGeneric: 'No pudimos reenviar el código. Intenta de nuevo.',
+      emailAlreadyVerified:
+        'Tu correo ya está verificado. Falta otro paso para terminar el registro.',
     },
   },
   tabs: {
@@ -76,7 +85,10 @@ const esStrict = {
     title: 'Mis viajes',
     tabActive: 'Activos',
     tabPast: 'Pasados',
-    newTrip: 'Nuevo viaje',
+    newTrip: 'Crear viaje',
+    joinCta: 'Unirme con código',
+    fabOpen: 'Mostrar acciones',
+    fabClose: 'Cerrar acciones',
     membersCountOne: '{{count}} miembro',
     membersCountMany: '{{count}} miembros',
     collectedOfTarget: '{{collected}} de {{target}}',
@@ -161,25 +173,94 @@ const esStrict = {
         title: 'Viaje cancelado',
         body: 'El plan de ahorro se cerró y el viaje pasó a estado cancelado. Los pagos confirmados se mantienen como histórico.',
       },
+      inviteCode: {
+        title: 'Código del viaje',
+        subtitle:
+          'Compártelo con quien quieras invitar. Deben bajar Frog y meter el código.',
+        copyLabel: 'Copiar código',
+        share: 'Compartir código',
+        shareTemplate:
+          'Te invito a {{tripName}} en Frog. Baja la app y mete el código: {{code}}',
+      },
+      joinRequests: {
+        title: 'Solicitudes pendientes',
+        body: {
+          one: '{{count}} persona quiere unirse al viaje.',
+          other: '{{count}} personas quieren unirse al viaje.',
+        },
+        review: 'Revisar solicitudes',
+      },
     },
-    invitedMembers: {
-      title: 'Invitados pendientes',
+    joinWithCode: {
+      headerTitle: 'Unirme con código',
+      title: 'Unirme a un viaje',
       subtitle:
-        'Comparte el link con cada persona. Cada link expira en 7 días.',
-      pending: 'Pendiente',
-      expired: 'Expirada',
-      linkLabel: 'Link de invitación',
-      copyLink: 'Copiar link',
-      share: 'Compartir',
-      resend: 'Reenviar',
-      regenerate: 'Regenerar link',
-      resendError: 'No pudimos reenviar la invitación. Intenta de nuevo.',
-      shareTemplate:
-        'Estás invitado a {{tripName}}. Abre este link para unirte: {{url}}',
-      resendConfirm: {
-        title: 'Reenviar invitación',
-        body: 'Generaremos un link nuevo y el anterior dejará de funcionar. Asegúrate de compartir el nuevo con la persona.',
-        confirm: 'Reenviar',
+        'Pídele al organizador el código de su viaje y mételo aquí.',
+      codeLabel: 'Código del viaje',
+      codePlaceholder: 'A8K2NP',
+      codeHelper: 'Son 6 caracteres. No importa si lo escribes con guiones.',
+      checkCta: 'Buscar viaje',
+      requestJoin: 'Solicitar unirme',
+      goToTrip: 'Ir al viaje',
+      messageLabel: 'Mensaje para el organizador (opcional)',
+      messagePlaceholder: 'Hola, soy Sergio del grupo de la oficina…',
+      messageCounter: '{{count}} / 500',
+      requestSuccessTitle: 'Solicitud enviada',
+      requestSuccessBody:
+        'Te avisamos cuando el organizador la acepte.',
+      preview: {
+        organizer: 'Organizado por {{name}}',
+        organizerUnknown: 'Sin nombre del organizador',
+        members: {
+          one: '{{count}} persona en el viaje',
+          other: '{{count}} personas en el viaje',
+        },
+        deadline: 'Cierra el {{date}}',
+      },
+      status: {
+        alreadyMember: 'Ya formas parte de este viaje.',
+        pending:
+          'Ya solicitaste unirte. El organizador está revisando.',
+        organizer: 'Tú eres el organizador de este viaje.',
+        solo: 'Este viaje es solo del organizador y no admite invitados.',
+      },
+      errors: {
+        tooShort: 'El código debe tener 6 caracteres.',
+        notFound: 'No encontramos un viaje con ese código.',
+        generic: 'No pudimos buscar el código. Intenta de nuevo.',
+        requestGeneric:
+          'No pudimos enviar tu solicitud. Intenta de nuevo.',
+        messageTooLong:
+          'El mensaje no puede pasar de 500 caracteres.',
+      },
+    },
+    joinRequests: {
+      headerTitle: 'Solicitudes de unión',
+      title: 'Solicitudes de unión',
+      subtitle:
+        'Aprueba a quienes quieras agregar al viaje. Si rechazas, podrán intentar de nuevo.',
+      emptyTitle: 'Sin solicitudes pendientes',
+      emptyBody:
+        'Cuando alguien meta el código del viaje aparecerá aquí.',
+      errorTitle: 'No pudimos cargar las solicitudes.',
+      requesterFallback: 'Persona sin nombre',
+      requestedOn: 'Solicitó el {{date}}',
+      messageLabel: 'Mensaje del solicitante',
+      approve: 'Aceptar',
+      reject: 'Rechazar',
+      approveError: 'No pudimos aprobar la solicitud. Intenta de nuevo.',
+      rejectError: 'No pudimos rechazar la solicitud. Intenta de nuevo.',
+      rejectDialog: {
+        title: 'Rechazar solicitud',
+        body:
+          'Cuéntale por qué (opcional, solo lo verá el solicitante).',
+        reasonLabel: 'Motivo del rechazo',
+        reasonPlaceholder: 'Ej. ya somos suficientes en el grupo.',
+        confirm: 'Rechazar',
+        counter: '{{count}} / 500',
+        error: {
+          tooLong: 'El motivo no puede pasar de 500 caracteres.',
+        },
       },
     },
     organizer: {
@@ -474,13 +555,17 @@ const esStrict = {
         },
       },
       step4: {
-        title: 'Invitados',
-        subtitle: 'Agrega a las personas que ahorrarán contigo.',
+        title: '¿A quién le mandamos el código?',
+        subtitle:
+          'Te ayudamos a mandar el código por correo. También puedes compartirlo después desde el viaje.',
+        helper:
+          'Los invitados deben bajar Frog y meter el código para unirse.',
         addMember: 'Agregar persona',
         namePlaceholder: 'Nombre',
         contactPlaceholder: 'Correo o teléfono',
         removeMember: 'Quitar persona',
-        empty: 'Aún no agregaste a nadie. Puedes invitar hasta 20 personas.',
+        empty:
+          'Sin agregar a nadie aquí, compartes el código tú mismo después.',
         errors: {
           contactInvalid: 'Necesita un correo o un teléfono válido.',
           duplicateEmail: 'Hay correos repetidos.',
@@ -522,18 +607,6 @@ const esStrict = {
             'CLABE inválida. Verifica los dígitos con tu banco.',
           bank: 'Indica el nombre del banco.',
         },
-      },
-      created: {
-        headerTitle: 'Viaje creado',
-        title: 'Tu viaje está listo',
-        subtitle:
-          'Comparte el link con cada persona para que se una. El link expira en 7 días.',
-        copyLink: 'Copiar link',
-        linkCopied: 'Link copiado',
-        share: 'Compartir',
-        goToTrip: 'Ir al viaje',
-        noInvitations:
-          'Este viaje no tiene invitaciones pendientes.',
       },
     },
     edit: {
@@ -596,22 +669,6 @@ const esStrict = {
         body: 'Sus pagos confirmados se mantienen, pero ya no contará para el ahorro del grupo.',
         confirm: 'Sí, remover',
         genericError: 'No pudimos remover al miembro. Intenta de nuevo.',
-      },
-      inviteLate: {
-        cta: 'Invitar a alguien más',
-        title: 'Invitar a alguien más',
-        submit: 'Enviar invitación',
-        namePlaceholder: 'Nombre',
-        contactPlaceholder: 'Correo o teléfono',
-        helper:
-          'Le mandamos un link para unirse al viaje. Caduca en 7 días.',
-        error: {
-          nameRequired: 'Escribe el nombre.',
-          contactInvalid: 'Necesita un correo o un teléfono válido.',
-          duplicate: 'Ya existe un miembro con ese correo o teléfono.',
-          isSolo: 'Este viaje está marcado como solo. No puedes invitar a nadie.',
-          generic: 'No pudimos enviar la invitación. Intenta de nuevo.',
-        },
       },
       purchaseReady: {
         title: 'Viaje comprado',
@@ -714,39 +771,13 @@ const esStrict = {
   },
   invitations: {
     join: {
-      title: 'Estás invitado',
-      loading: 'Cargando invitación…',
-      accept: 'Aceptar invitación',
-      continueToAccept: 'Continuar para aceptar',
-      noAccount: '¿No tienes cuenta?',
-      goToSignUp: 'Crear cuenta',
-      goToTrip: 'Ir al viaje',
-      alreadyAcceptedByOther:
-        'Esta invitación ya fue aceptada desde otra cuenta.',
-      expiredHint: 'Este link expiró. Pídele uno nuevo al organizador.',
-      acceptError: 'No pudimos aceptar la invitación. Intenta de nuevo.',
-      alreadyMember: 'Ya formas parte de este viaje.',
-      notFound: {
-        title: 'Invitación no encontrada',
-        body: 'Este link ya no es válido. Pídele al organizador uno nuevo.',
-      },
-      error: {
-        title: 'No pudimos cargar la invitación.',
+      legacy: {
+        title: 'Este link ya no funciona',
+        body:
+          'Cambiamos cómo se invita a los viajes. Pídele al organizador el código y mételo en "Unirme con código".',
+        cta: 'Unirme con código',
       },
     },
-    preview: {
-      invitedBy: 'Te invitó {{name}}',
-      invitedByGeneric: 'Te invitaron a este viaje',
-      invitedAs: 'Como {{name}}',
-      costPerPerson: 'Costo por persona',
-      deadline: 'Fecha límite',
-      members: 'Miembros actuales',
-      acceptedBadge: 'Aceptada',
-      expiredBadge: 'Expirada',
-    },
-  },
-  join: {
-    received: 'Invitación recibida: {{token}}',
   },
   states: {
     loading: {

@@ -52,6 +52,8 @@ export const en: TranslationSchema = {
       codeHelper: 'You can find it in the email we just sent.',
       codeSubmit: 'Verify',
       changeEmail: 'Change email',
+      resendCode: 'Resend code',
+      codeResent: 'We sent you a new code.',
       hasAccount: 'Already have an account?',
       goToSignIn: 'Sign in',
     },
@@ -63,6 +65,13 @@ export const en: TranslationSchema = {
       identifierNotFound: "We couldn't find this account.",
       identifierExists: 'An account with this email already exists.',
       rateLimited: 'Too many attempts. Wait a moment.',
+      signUpMissingFields:
+        'Still missing: {{fields}}. Update Clerk config or start over.',
+      signUpIncomplete:
+        "Sign-up didn't complete. Try again or contact support.",
+      resendGeneric: "Couldn't resend the code. Try again.",
+      emailAlreadyVerified:
+        "Your email is already verified. One more step to finish sign-up.",
     },
   },
   tabs: {
@@ -74,7 +83,10 @@ export const en: TranslationSchema = {
     title: 'My trips',
     tabActive: 'Active',
     tabPast: 'Past',
-    newTrip: 'New trip',
+    newTrip: 'Create trip',
+    joinCta: 'Join with code',
+    fabOpen: 'Show actions',
+    fabClose: 'Close actions',
     membersCountOne: '{{count}} member',
     membersCountMany: '{{count}} members',
     collectedOfTarget: '{{collected}} of {{target}}',
@@ -160,24 +172,93 @@ export const en: TranslationSchema = {
         title: 'Trip cancelled',
         body: 'The savings plan was closed and the trip moved to cancelled. Confirmed payments are kept as history.',
       },
+      inviteCode: {
+        title: 'Trip code',
+        subtitle:
+          'Share it with anyone you want to invite. They need to download Frog and enter the code.',
+        copyLabel: 'Copy code',
+        share: 'Share code',
+        shareTemplate:
+          "I'm inviting you to {{tripName}} on Frog. Download the app and enter this code: {{code}}",
+      },
+      joinRequests: {
+        title: 'Pending join requests',
+        body: {
+          one: '{{count}} person wants to join the trip.',
+          other: '{{count}} people want to join the trip.',
+        },
+        review: 'Review requests',
+      },
     },
-    invitedMembers: {
-      title: 'Pending invitees',
-      subtitle: 'Share the link with each person. Each link expires in 7 days.',
-      pending: 'Pending',
-      expired: 'Expired',
-      linkLabel: 'Invitation link',
-      copyLink: 'Copy link',
-      share: 'Share',
-      resend: 'Resend',
-      regenerate: 'Regenerate link',
-      resendError: "Couldn't resend the invitation. Try again.",
-      shareTemplate:
-        "You're invited to {{tripName}}. Open this link to join: {{url}}",
-      resendConfirm: {
-        title: 'Resend invitation',
-        body: "We'll generate a new link and the old one will stop working. Make sure to share the new link.",
-        confirm: 'Resend',
+    joinWithCode: {
+      headerTitle: 'Join with code',
+      title: 'Join a trip',
+      subtitle:
+        "Ask the organizer for their trip's code and enter it here.",
+      codeLabel: 'Trip code',
+      codePlaceholder: 'A8K2NP',
+      codeHelper: "It's 6 characters. Hyphens are fine.",
+      checkCta: 'Find trip',
+      requestJoin: 'Request to join',
+      goToTrip: 'Go to trip',
+      messageLabel: 'Message for the organizer (optional)',
+      messagePlaceholder: "Hi, I'm Sergio from the office group…",
+      messageCounter: '{{count}} / 500',
+      requestSuccessTitle: 'Request sent',
+      requestSuccessBody:
+        "We'll let you know when the organizer accepts.",
+      preview: {
+        organizer: 'Organized by {{name}}',
+        organizerUnknown: 'No organizer name',
+        members: {
+          one: '{{count}} person on the trip',
+          other: '{{count}} people on the trip',
+        },
+        deadline: 'Closes on {{date}}',
+      },
+      status: {
+        alreadyMember: "You're already part of this trip.",
+        pending:
+          "You've already requested to join. The organizer is reviewing.",
+        organizer: "You're the organizer of this trip.",
+        solo: "This trip is solo and doesn't accept guests.",
+      },
+      errors: {
+        tooShort: 'The code must be 6 characters.',
+        notFound: "We couldn't find a trip with that code.",
+        generic: "We couldn't look up the code. Try again.",
+        requestGeneric:
+          "We couldn't send your request. Try again.",
+        messageTooLong: 'The message cannot exceed 500 characters.',
+      },
+    },
+    joinRequests: {
+      headerTitle: 'Join requests',
+      title: 'Join requests',
+      subtitle:
+        'Approve the people you want to add. Rejected requests can be re-submitted.',
+      emptyTitle: 'No pending requests',
+      emptyBody:
+        "When someone enters the trip's code it will show up here.",
+      errorTitle: "We couldn't load the requests.",
+      requesterFallback: 'Unnamed person',
+      requestedOn: 'Requested on {{date}}',
+      messageLabel: "Requester's message",
+      approve: 'Accept',
+      reject: 'Reject',
+      approveError: "We couldn't approve the request. Try again.",
+      rejectError: "We couldn't reject the request. Try again.",
+      rejectDialog: {
+        title: 'Reject request',
+        body:
+          "Tell them why (optional — only the requester will see it).",
+        reasonLabel: 'Reason for rejection',
+        reasonPlaceholder: "E.g. we're already full.",
+        confirm: 'Reject',
+        counter: '{{count}} / 500',
+        error: {
+          tooLong: 'The reason cannot exceed 500 characters.',
+        },
       },
     },
     organizer: {
@@ -468,13 +549,17 @@ export const en: TranslationSchema = {
         },
       },
       step4: {
-        title: 'Guests',
-        subtitle: 'Add the people saving with you.',
+        title: 'Who should we send the code to?',
+        subtitle:
+          "We'll help you send the code by email. You can also share it later from the trip.",
+        helper:
+          'Guests need to download Frog and enter the code to join.',
         addMember: 'Add person',
         namePlaceholder: 'Name',
         contactPlaceholder: 'Email or phone',
         removeMember: 'Remove person',
-        empty: 'No one added yet. You can invite up to 20 people.',
+        empty:
+          "Skip — you can share the code yourself later.",
         errors: {
           contactInvalid: 'Needs a valid email or phone.',
           duplicateEmail: 'Duplicate emails.',
@@ -515,17 +600,6 @@ export const en: TranslationSchema = {
           clabeInvalid: 'Invalid CLABE. Double-check the digits with your bank.',
           bank: 'Type the bank name.',
         },
-      },
-      created: {
-        headerTitle: 'Trip created',
-        title: 'Your trip is ready',
-        subtitle:
-          'Share the link with each person so they can join. The link expires in 7 days.',
-        copyLink: 'Copy link',
-        linkCopied: 'Link copied',
-        share: 'Share',
-        goToTrip: 'Go to trip',
-        noInvitations: 'This trip has no pending invitations.',
       },
     },
     edit: {
@@ -588,21 +662,6 @@ export const en: TranslationSchema = {
         body: "Their confirmed payments stay, but they no longer count toward the group's savings.",
         confirm: 'Yes, remove',
         genericError: "Couldn't remove the member. Try again.",
-      },
-      inviteLate: {
-        cta: 'Invite someone else',
-        title: 'Invite someone else',
-        submit: 'Send invitation',
-        namePlaceholder: 'Name',
-        contactPlaceholder: 'Email or phone',
-        helper: 'We will send them a join link. It expires in 7 days.',
-        error: {
-          nameRequired: 'Type the name.',
-          contactInvalid: 'Needs a valid email or phone.',
-          duplicate: 'A member with that email or phone already exists.',
-          isSolo: "This trip is marked as solo. You can't invite anyone.",
-          generic: "Couldn't send the invitation. Try again.",
-        },
       },
       purchaseReady: {
         title: 'Trip purchased',
@@ -705,40 +764,13 @@ export const en: TranslationSchema = {
   },
   invitations: {
     join: {
-      title: "You're invited",
-      loading: 'Loading invitation…',
-      accept: 'Accept invitation',
-      continueToAccept: 'Continue to accept',
-      noAccount: "Don't have an account?",
-      goToSignUp: 'Create account',
-      goToTrip: 'Go to trip',
-      alreadyAcceptedByOther:
-        'This invitation was already accepted from another account.',
-      expiredHint:
-        'This link expired. Ask the organizer to send you a new one.',
-      acceptError: "Couldn't accept the invitation. Try again.",
-      alreadyMember: "You're already part of this trip.",
-      notFound: {
-        title: 'Invitation not found',
-        body: 'This link is no longer valid. Ask the organizer for a new one.',
-      },
-      error: {
-        title: "Couldn't load the invitation.",
+      legacy: {
+        title: 'This link no longer works',
+        body:
+          'We changed how trips invite people. Ask the organizer for the trip code and enter it in "Join with code".',
+        cta: 'Join with code',
       },
     },
-    preview: {
-      invitedBy: '{{name}} invited you',
-      invitedByGeneric: "You've been invited to this trip",
-      invitedAs: 'As {{name}}',
-      costPerPerson: 'Cost per person',
-      deadline: 'Deadline',
-      members: 'Current members',
-      acceptedBadge: 'Accepted',
-      expiredBadge: 'Expired',
-    },
-  },
-  join: {
-    received: 'Invitation received: {{token}}',
   },
   states: {
     loading: {

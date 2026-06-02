@@ -33,6 +33,12 @@ yarn-error.*
 # local env files
 .env*.local
 
+# EAS / store credentials (NEVER commit)
+google-play-service-account.json
+*.aab
+*.apk
+*.ipa
+
 # typescript
 *.tsbuildinfo
 

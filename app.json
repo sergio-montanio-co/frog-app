@@ -8,11 +8,14 @@
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "ios": {
-      "supportsTablet": true,
+      "supportsTablet": false,
       "bundleIdentifier": "com.montanio.frg",
       "associatedDomains": [
-        "applinks:app.frg.lat"
-      ]
+        "applinks:api.frg.lat"
+      ],
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "package": "com.montanio.frg",
@@ -28,7 +31,7 @@
           "data": [
             {
               "scheme": "https",
-              "host": "app.frg.lat",
+              "host": "api.frg.lat",
               "pathPrefix": "/join"
             }
           ],
@@ -46,10 +49,22 @@
       "expo-router",
       "expo-status-bar",
       "expo-font",
-      "expo-splash-screen",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/splash-icon.png",
+          "backgroundColor": "#F2EFEB",
+          "resizeMode": "contain"
+        }
+      ],
       "expo-secure-store",
       "expo-localization",
-      "expo-notifications",
+      [
+        "expo-notifications",
+        {
+          "color": "#594731"
+        }
+      ],
       "@react-native-community/datetimepicker"
     ],
     "extra": {
