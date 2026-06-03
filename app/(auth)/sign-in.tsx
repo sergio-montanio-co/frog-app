@@ -8,14 +8,19 @@ import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 
-import { Text, Button, Input, OtpInput } from '@/components/atoms'
+import { Text, Button, Input, OtpInput, Card, Icon } from '@/components/atoms'
 import { firstClerkErrorCode } from '@/lib/clerk/errors'
+import { createPublicClient } from '@/lib/api/client'
+import { env } from '@/lib/env'
+import { colors } from '@/theme/colors'
 import {
   clearPendingInvitation,
   getPendingInvitation,
 } from '@/lib/invitations/pending'
 
-type Stage = 'email' | 'code'
+type Stage = 'email' | 'code' | 'test-code'
+
+const TEST_ACCOUNT_EMAIL = env.EXPO_PUBLIC_TEST_ACCOUNT_EMAIL.toLowerCase()
 
 const emailSchema = z.object({
   email: z.string().trim().email(),
@@ -26,6 +31,11 @@ const codeSchema = z.object({
   code: z.string().trim().min(6, '6').max(6, '6'),
 })
 type CodeForm = z.infer<typeof codeSchema>
+
+const testCodeSchema = z.object({
+  code: z.string().trim().min(1).max(32),
+})
+type TestCodeForm = z.infer<typeof testCodeSchema>
 
 export default function SignInScreen() {
   const { t } = useTranslation()
@@ -48,9 +58,34 @@ export default function SignInScreen() {
     mode: 'onSubmit',
   })
 
+  const testCodeForm = useForm<TestCodeForm>({
+    resolver: zodResolver(testCodeSchema),
+    defaultValues: { code: '' },
+    mode: 'onSubmit',
+  })
+
+  async function completeSignIn() {
+    const pendingToken = await getPendingInvitation()
+    if (pendingToken) {
+      await clearPendingInvitation()
+      router.replace({
+        pathname: '/join/[token]',
+        params: { token: pendingToken },
+      })
+    } else {
+      router.replace('/(app)/(tabs)')
+    }
+  }
+
   async function onStart(values: EmailForm) {
     if (!isLoaded) return
     setSubmitError(null)
+    // La cuenta de prueba entra por el bypass de ticket, no por OTP.
+    if (values.email.trim().toLowerCase() === TEST_ACCOUNT_EMAIL) {
+      setEmail(values.email.trim())
+      setStage('test-code')
+      return
+    }
     try {
       const attempt = await signIn.create({ identifier: values.email })
       const emailFactor = attempt.supportedFirstFactors?.find(
@@ -87,16 +122,7 @@ export default function SignInScreen() {
       })
       if (result.status === 'complete') {
         await setActive({ session: result.createdSessionId })
-        const pendingToken = await getPendingInvitation()
-        if (pendingToken) {
-          await clearPendingInvitation()
-          router.replace({
-            pathname: '/join/[token]',
-            params: { token: pendingToken },
-          })
-        } else {
-          router.replace('/(app)/(tabs)')
-        }
+        await completeSignIn()
       } else {
         setSubmitError(t('auth.errors.genericVerify'))
       }
@@ -109,6 +135,33 @@ export default function SignInScreen() {
       } else {
         setSubmitError(t('auth.errors.genericVerify'))
       }
+    }
+  }
+
+  async function onTestVerify(values: TestCodeForm) {
+    if (!isLoaded) return
+    setSubmitError(null)
+    try {
+      const client = createPublicClient()
+      const { data, error } = await client.POST('/auth/test-signin', {
+        body: { email, code: values.code },
+      })
+      if (error || !data) {
+        setSubmitError(t('auth.signIn.testMode.error'))
+        return
+      }
+      const result = await signIn.create({
+        strategy: 'ticket',
+        ticket: data.ticket,
+      })
+      if (result.status === 'complete') {
+        await setActive({ session: result.createdSessionId })
+        await completeSignIn()
+      } else {
+        setSubmitError(t('auth.signIn.testMode.error'))
+      }
+    } catch {
+      setSubmitError(t('auth.signIn.testMode.error'))
     }
   }
 
@@ -128,6 +181,7 @@ export default function SignInScreen() {
                 name="email"
                 render={({ field, fieldState }) => (
                   <Input
+                    testID="auth-email-input"
                     label={t('auth.signIn.emailLabel')}
                     placeholder={t('auth.signIn.emailPlaceholder')}
                     value={field.value}
@@ -159,7 +213,7 @@ export default function SignInScreen() {
                 </Link>
               </View>
             </>
-          ) : (
+          ) : stage === 'code' ? (
             <>
               <Text variant="title">{t('auth.signIn.codeTitle')}</Text>
               <Text tone="secondary">
@@ -170,6 +224,7 @@ export default function SignInScreen() {
                 name="code"
                 render={({ field, fieldState }) => (
                   <OtpInput
+                    testID="auth-otp-input"
                     label={t('auth.signIn.codeLabel')}
                     helperText={t('auth.signIn.codeHelper')}
                     value={field.value}
@@ -197,6 +252,55 @@ export default function SignInScreen() {
                 variant="ghost"
                 onPress={() => {
                   codeForm.reset({ code: '' })
+                  setSubmitError(null)
+                  setStage('email')
+                }}
+              />
+            </>
+          ) : (
+            <>
+              <Card className="gap-2">
+                <View className="flex-row items-center gap-2">
+                  <Icon name="science" size={20} color={colors.secondary} />
+                  <Text variant="body-em">
+                    {t('auth.signIn.testMode.title')}
+                  </Text>
+                </View>
+                <Text variant="caption" tone="secondary">
+                  {t('auth.signIn.testMode.body')}
+                </Text>
+              </Card>
+              <Controller
+                control={testCodeForm.control}
+                name="code"
+                render={({ field, fieldState }) => (
+                  <Input
+                    testID="auth-test-code-input"
+                    label={t('auth.signIn.testMode.codeLabel')}
+                    value={field.value}
+                    onChangeText={field.onChange}
+                    onBlur={field.onBlur}
+                    keyboardType="number-pad"
+                    secureTextEntry
+                    autoComplete="off"
+                    error={
+                      fieldState.error || submitError
+                        ? (submitError ?? t('auth.signIn.testMode.error'))
+                        : undefined
+                    }
+                  />
+                )}
+              />
+              <Button
+                label={t('auth.signIn.testMode.cta')}
+                onPress={testCodeForm.handleSubmit(onTestVerify)}
+                loading={testCodeForm.formState.isSubmitting}
+              />
+              <Button
+                label={t('auth.signIn.testMode.back')}
+                variant="ghost"
+                onPress={() => {
+                  testCodeForm.reset({ code: '' })
                   setSubmitError(null)
                   setStage('email')
                 }}

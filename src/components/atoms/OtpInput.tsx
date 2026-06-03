@@ -18,6 +18,8 @@ export type OtpInputProps = {
   helperText?: string
   autoFocus?: boolean
   accessibilityLabel?: string
+  /** Sólo para automatización (Maestro/E2E). Se forwardea al CodeField. */
+  testID?: string
   /** Dispara cuando el usuario completa la longitud. Útil para auto-submit. */
   onComplete?: (v: string) => void
 }
@@ -31,6 +33,7 @@ export function OtpInput({
   helperText,
   autoFocus = true,
   accessibilityLabel,
+  testID,
   onComplete,
 }: OtpInputProps) {
   const ref = useBlurOnFulfill({ value, cellCount: length })
@@ -55,6 +58,7 @@ export function OtpInput({
         value={value}
         onChangeText={onChangeText}
         cellCount={length}
+        testID={testID}
         autoFocus={autoFocus}
         rootStyle={{ gap: 8 }}
         keyboardType="number-pad"

@@ -1,0 +1,32 @@
+# Subflow reutilizable: login con la cuenta de prueba vía bypass de OTP.
+#
+# La app detecta el email de la cuenta de prueba y, en lugar del OTP por
+# correo, pide un "código de acceso" fijo. El backend valida email+código
+# contra env vars y devuelve un Clerk sign-in token (ticket). Funciona en
+# producción y auto-puebla data demo en el primer login.
+#
+# Requiere en el backend (Railway): TEST_ACCOUNT_ENABLED=true,
+# TEST_ACCOUNT_EMAIL=test@frg.lat, TEST_ACCOUNT_CODE=314159.
+# Ver maestro/seed/README.md.
+#
+# Flujo real: email → "Continuar" → (stage cuenta de prueba) código → "Acceder".
+appId: com.montanio.frg
+env:
+  EMAIL: "test@frg.lat"
+  CODE: "314159"
+---
+- launchApp:
+    clearState: true
+- assertVisible: "Iniciar sesión"
+- tapOn:
+    id: "auth-email-input"
+- inputText: "${EMAIL}"
+- hideKeyboard
+- tapOn: "Continuar"
+- assertVisible: "Cuenta de prueba"
+- tapOn:
+    id: "auth-test-code-input"
+- inputText: "${CODE}"
+- hideKeyboard
+- tapOn: "Acceder"
+- assertVisible: "Mis viajes"

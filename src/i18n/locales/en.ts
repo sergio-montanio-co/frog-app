@@ -38,6 +38,14 @@ export const en: TranslationSchema = {
       changeEmail: 'Change email',
       noAccount: "Don't have an account?",
       goToSignUp: 'Create account',
+      testMode: {
+        title: 'Test account',
+        body: 'This account uses a fixed code instead of the one sent by email.',
+        codeLabel: 'Access code',
+        cta: 'Sign in',
+        back: 'Use another email',
+        error: 'The code is incorrect. Try again.',
+      },
     },
     signUp: {
       title: 'Create account',

@@ -16,6 +16,17 @@ export class ApiError extends Error {
   }
 }
 
+/**
+ * Cliente sin auth header para endpoints `@Public()` del backend (p. ej.
+ * `/auth/test-signin`, que se llama antes de tener sesión Clerk). Se sigue
+ * construyendo desde `paths`, igual que `useApiClient`.
+ */
+export function createPublicClient(): ApiClient {
+  return createClient<paths>({
+    baseUrl: env.EXPO_PUBLIC_API_BASE_URL,
+  })
+}
+
 export function useApiClient(): ApiClient {
   const { getToken } = useAuth()
 

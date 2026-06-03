@@ -40,6 +40,14 @@ const esStrict = {
       changeEmail: 'Cambiar correo',
       noAccount: '¿No tienes cuenta?',
       goToSignUp: 'Crear cuenta',
+      testMode: {
+        title: 'Cuenta de prueba',
+        body: 'Esta cuenta usa un código fijo en lugar del que llega por correo.',
+        codeLabel: 'Código de acceso',
+        cta: 'Acceder',
+        back: 'Usar otro correo',
+        error: 'El código no es correcto. Intenta de nuevo.',
+      },
     },
     signUp: {
       title: 'Crear cuenta',

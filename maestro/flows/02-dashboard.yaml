@@ -1,0 +1,11 @@
+# Screenshot 2 · Dashboard del viaje con plan activo.
+# Toca el viaje seed por su nombre (la TripCard expone el nombre como
+# texto y como accessibilityLabel) y espera el card de progreso del grupo.
+appId: com.montanio.frg
+env:
+  TRIP_NAME: "Cancún todo incluido"
+---
+- runFlow: 00-login.yaml
+- tapOn: "${TRIP_NAME}"
+- assertVisible: "Progreso del grupo"
+- takeScreenshot: "02-dashboard"

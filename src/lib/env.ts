@@ -13,6 +13,9 @@ const schema = z.object({
     .min(1)
     .optional()
     .or(z.literal('').transform(() => undefined)),
+  // Email de la cuenta de prueba (no es secreto; el código lo teclea el
+  // usuario). Default a test@frg.lat si no se define en el entorno.
+  EXPO_PUBLIC_TEST_ACCOUNT_EMAIL: z.string().min(1).catch('test@frg.lat'),
 })
 
 const parsed = schema.safeParse(process.env)

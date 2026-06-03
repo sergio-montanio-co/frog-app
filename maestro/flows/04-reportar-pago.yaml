@@ -1,0 +1,15 @@
+# Screenshot 4 · Reportar pago.
+# Entra al viaje seed, toca el CTA "Reportar pago" del banner de cuota
+# próxima y espera la pantalla de reporte (título "Reporta tu pago").
+# Requiere que el viaje tenga una cuota próxima visible para el miembro.
+appId: com.montanio.frg
+env:
+  TRIP_NAME: "Cancún todo incluido"
+---
+- runFlow: 00-login.yaml
+- tapOn: "${TRIP_NAME}"
+- assertVisible: "Reportar pago"
+- tapOn: "Reportar pago"
+- assertVisible: "Reporta tu pago"
+- assertVisible: "Cuenta del organizador"
+- takeScreenshot: "04-reportar-pago"

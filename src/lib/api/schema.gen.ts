@@ -158,37 +158,17 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/health": {
+    "/auth/test-signin": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        /**
-         * Healthcheck del servicio + ping a Postgres
-         * @description Endpoint público. Regresa 200 incluso si la BD está caída (con status degraded).
-         */
-        get: operations["HealthController_check"];
+        get?: never;
         put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/organizations/mine": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Lista las organizaciones del usuario (en v0 sólo la personal) */
-        get: operations["OrganizationsController_listMine"];
-        put?: never;
-        post?: never;
+        /** Bypass de OTP para la cuenta de prueba (reviewers de stores / E2E). Devuelve un sign-in token de Clerk. */
+        post: operations["AuthController_testSignIn"];
         delete?: never;
         options?: never;
         head?: never;
@@ -492,6 +472,43 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/health": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Healthcheck del servicio + ping a Postgres
+         * @description Endpoint público. Regresa 200 incluso si la BD está caída (con status degraded).
+         */
+        get: operations["HealthController_check"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/organizations/mine": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Lista las organizaciones del usuario (en v0 sólo la personal) */
+        get: operations["OrganizationsController_listMine"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/trips/{tripId}/members": {
         parameters: {
             query?: never;
@@ -775,25 +792,21 @@ export interface components {
              */
             expoPushToken: string;
         };
-        HealthResponse: {
+        TestSignInDto: {
             /**
-             * @example ok
-             * @enum {string}
+             * Format: email
+             * @example test@frg.lat
              */
-            status: "ok" | "degraded";
+            email: string;
             /**
-             * @example ok
-             * @enum {string}
+             * @description Código compartido (env var)
+             * @example 314159
              */
-            db: "ok" | "down";
-            /**
-             * Format: date-time
-             * @example 2026-05-26T00:00:00.000Z
-             */
-            timestamp: string;
+            code: string;
         };
-        OrganizationListResponse: {
-            items: components["schemas"]["OrganizationDto"][];
+        TestSignInResponseDto: {
+            /** @description Clerk sign-in token (ticket). El frontend lo canjea con signIn.create({ strategy: 'ticket', ticket }). */
+            ticket: string;
         };
         CostBreakdownItemDto: {
             /** @enum {string} */
@@ -1328,6 +1341,26 @@ export interface components {
             /** @description Notas opcionales del organizador al liberar fondos. */
             notes?: string;
         };
+        HealthResponse: {
+            /**
+             * @example ok
+             * @enum {string}
+             */
+            status: "ok" | "degraded";
+            /**
+             * @example ok
+             * @enum {string}
+             */
+            db: "ok" | "down";
+            /**
+             * Format: date-time
+             * @example 2026-05-26T00:00:00.000Z
+             */
+            timestamp: string;
+        };
+        OrganizationListResponse: {
+            items: components["schemas"]["OrganizationDto"][];
+        };
         MemberListResponseDto: {
             items: components["schemas"]["TripMemberDto"][];
         };
@@ -1640,48 +1673,33 @@ export interface operations {
             };
         };
     };
-    HealthController_check: {
+    AuthController_testSignIn: {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TestSignInDto"];
+            };
+        };
         responses: {
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["HealthResponse"];
+                    "application/json": components["schemas"]["TestSignInResponseDto"];
                 };
             };
-            /** @description Reservado para futuras dependencias críticas — actualmente nunca se devuelve. */
-            503: {
+            /** @description Feature deshabilitada o credenciales inválidas. */
+            403: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content?: never;
-            };
-        };
-    };
-    OrganizationsController_listMine: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["OrganizationListResponse"];
-                };
             };
         };
     };
@@ -2541,6 +2559,51 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+        };
+    };
+    HealthController_check: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HealthResponse"];
+                };
+            };
+            /** @description Reservado para futuras dependencias críticas — actualmente nunca se devuelve. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    OrganizationsController_listMine: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OrganizationListResponse"];
+                };
             };
         };
     };

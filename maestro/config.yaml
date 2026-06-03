@@ -1,0 +1,22 @@
+# Maestro workspace config para Frog.
+# Docs: https://maestro.mobile.dev/cli/configuration
+#
+# El appId real de la app (iOS bundleIdentifier + Android package) es
+# `com.montanio.frg` — NO `com.frog.app`. Está en app.json.
+#
+# Cada flow declara su propio appId y sus env vars con defaults, así que
+# se pueden correr sueltos con `maestro test maestro/flows/<flow>.yaml`.
+# Este archivo sólo fija el orden y excluye el subflow de login (no es un
+# screenshot por sí mismo, se invoca con runFlow desde los demás).
+
+flows:
+  - flows/*.yaml
+
+executionOrder:
+  continueOnFailure: false
+  flowsOrder:
+    - 01-mis-viajes
+    - 02-dashboard
+    - 03-crear-viaje
+    - 04-reportar-pago
+    - 05-aprobar-pagos

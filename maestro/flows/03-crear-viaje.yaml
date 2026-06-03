@@ -1,0 +1,15 @@
+# Screenshot 3 · Wizard "Crear viaje" (paso 1).
+# "Crear viaje" vive detrás del SpeedDial FAB: hay que abrirlo primero
+# tocando "Mostrar acciones". Llenamos el nombre y NO tocamos el buscador
+# de destino (depende de Mapbox/red — lo dejamos fuera para que sea estable).
+appId: com.montanio.frg
+---
+- runFlow: 00-login.yaml
+- tapOn: "Mostrar acciones"
+- tapOn: "Crear viaje"
+- assertVisible: "El viaje"
+- tapOn:
+    id: "wizard-trip-name-input"
+- inputText: "Hotel Xcaret todo incluido"
+- hideKeyboard
+- takeScreenshot: "03-crear-viaje"

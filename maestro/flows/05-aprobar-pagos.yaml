@@ -1,0 +1,17 @@
+# Screenshot 5 · Aprobar pagos (vista de organizador).
+# Requiere que la cuenta seed sea ORGANIZER del viaje Y tenga 1+
+# contribuciones pendientes (si no, la pantalla muestra estado vacío).
+# "Aprobar pagos" está en el card "Acciones de organizador", abajo del
+# dashboard: hacemos scroll hasta encontrarlo.
+appId: com.montanio.frg
+env:
+  TRIP_NAME: "Cancún todo incluido"
+---
+- runFlow: 00-login.yaml
+- tapOn: "${TRIP_NAME}"
+- scrollUntilVisible:
+    element:
+      text: "Aprobar pagos"
+- tapOn: "Aprobar pagos"
+- assertVisible: "Pagos por aprobar"
+- takeScreenshot: "05-aprobar-pagos"

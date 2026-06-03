@@ -1,0 +1,7 @@
+# Screenshot 1 · Mis viajes (lista de viajes activos).
+# Asume que la cuenta seed tiene 2-3 viajes activos visibles.
+appId: com.montanio.frg
+---
+- runFlow: 00-login.yaml
+- assertVisible: "Mis viajes"
+- takeScreenshot: "01-mis-viajes"

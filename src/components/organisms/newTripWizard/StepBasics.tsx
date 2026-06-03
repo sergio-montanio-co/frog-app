@@ -24,6 +24,7 @@ export function StepBasics({ draft, onChange }: StepProps) {
       subtitle={t('trips.new.step1.subtitle')}
     >
       <Input
+        testID="wizard-trip-name-input"
         label={t('trips.new.step1.nameLabel')}
         placeholder={t('trips.new.step1.namePlaceholder')}
         value={draft.name}

@@ -48,3 +48,10 @@ google-play-service-account.json
 
 # AI
 docs/
+
+# Maestro screenshot output (artefactos pesados, no se commitean)
+/screenshots/
+# PNGs sueltos que Maestro deja en el repo root antes de moverlos
+/*.png
+# Logs de Maestro
+.maestro/
