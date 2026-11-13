@@ -21,8 +21,8 @@ cd "$REPO_ROOT"
 
 # Cada entrada: "AVD_NAME|carpeta|ancho|alto" (ancho/alto = target 9:16).
 DEVICES=(
-  "Pixel_7_API_34|phone|1080|1920"
-  "Pixel_Tablet_7_API_34|tablet-7|1242|2208"
+  "Pixel_9_API_35|phone|1080|1920"
+  "Pixel_Tablet_10_API_35|tablet-7|1242|2208"
 )
 
 FLOWS=(
@@ -37,6 +37,15 @@ if ! command -v emulator >/dev/null 2>&1; then
   echo "❌ No hay 'emulator' en el PATH. Instala el Android SDK primero"
   echo "   (ANDROID_HOME=$ANDROID_HOME). Ver maestro/seed/README.md."
   exit 1
+fi
+
+# Si la app instalada es un build debug/dev, necesita Metro en el 8081. Solo
+# avisamos (no es fatal): un APK release trae el JS empaquetado y no lo usa.
+if ! lsof -nP -iTCP:8081 -sTCP:LISTEN >/dev/null 2>&1; then
+  echo "⚠️  Metro no parece estar corriendo en el puerto 8081."
+  echo "   Si la app es un build debug/dev, abre otra terminal y corre:"
+  echo "     npx expo start --dev-client"
+  echo "   (Un APK release no necesita Metro; ignora este aviso.)"
 fi
 
 for ENTRY in "${DEVICES[@]}"; do
@@ -55,6 +64,12 @@ for ENTRY in "${DEVICES[@]}"; do
   until [ "$(adb shell getprop sys.boot_completed 2>/dev/null | tr -d '\r')" = "1" ]; do
     sleep 2
   done
+
+  # El build de debug/dev necesita alcanzar Metro (puerto 8081) en la Mac.
+  # adb reverse es por-dispositivo y NO persiste entre arranques, así que se
+  # reconfigura en cada emulator que booteamos. Inofensivo en builds release
+  # (que traen el JS empaquetado y no usan el túnel).
+  adb reverse tcp:8081 tcp:8081 || echo "  ⚠️  No se pudo configurar adb reverse"
 
   OUT_DIR="screenshots/android/$FOLDER"
   mkdir -p "$OUT_DIR"

@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@500;600;700&display=swap');
+
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+
+      html, body {
+        width: 1024px;
+        height: 500px;
+        overflow: hidden;
+      }
+
+      .canvas {
+        width: 1024px;
+        height: 500px;
+        background: #F2EFEB; /* background — paleta Arquitectura */
+        display: flex;
+        align-items: center;
+        gap: 64px;
+        padding: 0 96px;
+        font-family: 'Quicksand', sans-serif;
+        -webkit-font-smoothing: antialiased;
+      }
+
+      .icon {
+        width: 220px;
+        height: 220px;
+        border-radius: 48px; /* icono ya es rounded; recorte por si acaso */
+        flex-shrink: 0;
+      }
+
+      .brand { display: flex; flex-direction: column; }
+
+      .name {
+        font-weight: 700;
+        font-size: 132px;
+        line-height: 1;
+        color: #594731; /* primary */
+        letter-spacing: -2px;
+      }
+
+      .tagline {
+        font-weight: 600;
+        font-size: 48px;
+        line-height: 1.25;
+        color: #736A62; /* secondary */
+        margin-top: 20px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="canvas">
+      <img class="icon" src="file:///Users/serchmontano/Documents/GitHub/frog-app/assets/icon.png" alt="" />
+      <div class="brand">
+        <div class="name">Frog</div>
+        <div class="tagline">Viajes en grupo,<br />cuentas claras</div>
+      </div>
+    </div>
+  </body>
+</html>

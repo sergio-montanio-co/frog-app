@@ -3,6 +3,7 @@ import '@/i18n'
 import '@/lib/push/setup'
 
 import { useEffect } from 'react'
+import { LogBox } from 'react-native'
 import { ClerkProvider, ClerkLoaded } from '@clerk/expo'
 import { tokenCache } from '@clerk/expo/token-cache'
 import { Slot } from 'expo-router'
@@ -20,6 +21,15 @@ import {
 
 import { queryClient } from '@/lib/api/query-client'
 import { env } from '@/lib/env'
+
+// Silencia warnings benignos y conocidos para que el banner de LogBox no
+// aparezca en las screenshots de Maestro. Solo afecta dev (LogBox no existe
+// en release). Si surge un warning nuevo y real, agrégalo aquí a conciencia.
+LogBox.ignoreLogs([
+  'Clerk has been loaded with development keys',
+  'new NativeEventEmitter()',
+  "Can't perform a React state update",
+])
 
 SplashScreen.preventAutoHideAsync().catch(() => {
   /* noop: splash may already be hidden in some scenarios */

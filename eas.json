@@ -12,10 +12,18 @@
       "distribution": "internal",
       "ios": {
         "simulator": true
+      },
+      "env": {
+        "EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY": "pk_test_YW11c2luZy1hc3AtNDQuY2xlcmsuYWNjb3VudHMuZGV2JA",
+        "EXPO_PUBLIC_API_BASE_URL": "https://api.frg.lat/"
       }
     },
     "production": {
-      "autoIncrement": true
+      "autoIncrement": true,
+      "env": {
+        "EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY": "pk_test_YW11c2luZy1hc3AtNDQuY2xlcmsuYWNjb3VudHMuZGV2JA",
+        "EXPO_PUBLIC_API_BASE_URL": "https://api.frg.lat/"
+      }
     }
   },
   "submit": {
